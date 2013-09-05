@@ -268,7 +268,7 @@
 		F01EBC9A170115B100FF6A7C /* SLTextFieldTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLTextFieldTestViewController.m; sourceTree = "<group>"; };
 		F01EBC9D1701429400FF6A7C /* SLWebTextField.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = SLWebTextField.html; sourceTree = "<group>"; };
 		F024BE31168BD70900708350 /* TestUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUtilities.h; sourceTree = "<group>"; };
-		F024BE32168BD70900708350 /* TestUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUtilities.m; sourceTree = "<group>"; };
+		F024BE32168BD70900708350 /* TestUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TestUtilities.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		F0271AFD162E0B950098F5F2 /* SLTestController+AppHooks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SLTestController+AppHooks.h"; sourceTree = "<group>"; };
 		F0271AFE162E0B950098F5F2 /* SLTestController+AppHooks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SLTestController+AppHooks.m"; sourceTree = "<group>"; };
 		F043469D175ACE3A00D91F7F /* NSObject+SLAccessibilityDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SLAccessibilityDescription.h"; sourceTree = "<group>"; };
@@ -295,10 +295,10 @@
 		F0695DDB160138DF000B05D0 /* SLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLLogger.m; path = Logging/SLLogger.m; sourceTree = "<group>"; };
 		F0695DDE160138DF000B05D0 /* SLTerminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLTerminal.h; sourceTree = "<group>"; };
 		F0695DDF160138DF000B05D0 /* SLTerminal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLTerminal.m; sourceTree = "<group>"; };
-		F0695DE0160138DF000B05D0 /* SLTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLTest.h; sourceTree = "<group>"; };
+		F0695DE0160138DF000B05D0 /* SLTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = SLTest.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		F0695DE1160138DF000B05D0 /* SLTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLTest.m; sourceTree = "<group>"; };
-		F0695DE2160138DF000B05D0 /* SLTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLTestController.h; sourceTree = "<group>"; };
-		F0695DE3160138DF000B05D0 /* SLTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLTestController.m; sourceTree = "<group>"; };
+		F0695DE2160138DF000B05D0 /* SLTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = SLTestController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		F0695DE3160138DF000B05D0 /* SLTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SLTestController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		F0695DEA16013908000B05D0 /* Subliminal-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Subliminal-Prefix.pch"; sourceTree = "<group>"; };
 		F0695DEB1601391C000B05D0 /* Subliminal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Subliminal.h; sourceTree = "<group>"; };
 		F0695E0C16013D77000B05D0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -339,7 +339,7 @@
 		F0AC809F16BB299500C5D5C0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F0AC80A116BB299500C5D5C0 /* Subliminal Integration Tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Subliminal Integration Tests-Prefix.pch"; sourceTree = "<group>"; };
 		F0AC80A216BB299500C5D5C0 /* SLIntegrationTestsAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SLIntegrationTestsAppDelegate.h; sourceTree = "<group>"; };
-		F0AC80A316BB299500C5D5C0 /* SLIntegrationTestsAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SLIntegrationTestsAppDelegate.m; sourceTree = "<group>"; };
+		F0AC80A316BB299500C5D5C0 /* SLIntegrationTestsAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SLIntegrationTestsAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		F0AC80A516BB299500C5D5C0 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F0AC80A716BB299500C5D5C0 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		F0AC80A916BB299500C5D5C0 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };

@@ -261,7 +261,7 @@ static SLTestController *__sharedController = nil;
     [[SLLogger sharedLogger] logTestingStart];
 }
 
-- (void)runTestsSet:(NSSet *)tests withCompletionBlock:(void (^)())completionBlock {
+- (void)runTestSet:(NSSet *)tests withCompletionBlock:(void (^)())completionBlock {
     dispatch_async(_runQueue, ^{
         _completionBlock = completionBlock;
         
@@ -307,7 +307,7 @@ static SLTestController *__sharedController = nil;
     });
 }
 
-- (void)runTestsArray:(NSArray *)tests withCompletionBlock:(void (^)())completionBlock {
+- (void)runTestArray:(NSArray *)tests withCompletionBlock:(void (^)())completionBlock {
     dispatch_async(_runQueue, ^{
         _completionBlock = completionBlock;
         
