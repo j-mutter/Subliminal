@@ -47,6 +47,7 @@
  if any of the tests [are focused](+[SLTest isFocused]), `NO` otherwise.
  @return A filtered set of tests to run.
  */
-+ (NSSet *)testsToRun:(NSSet *)tests withFocus:(BOOL*)withFocus;
++ (NSSet *)testsToRunSet:(NSSet *)tests withFocus:(BOOL*)withFocus;
++ (NSArray *)testsToRunArray:(NSArray *)tests withFocus:(BOOL *)withFocus;
 
 @end

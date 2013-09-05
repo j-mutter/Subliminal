@@ -41,11 +41,11 @@
 /**
  Returns all tests linked against the current target.
  
- The recommended way to run Subliminal tests is to invoke `-[SLTestController runTests:withCompletionBlock:]`
+ The recommended way to run Subliminal tests is to invoke `-[SLTestController runTestsSet:withCompletionBlock:]`
  with the set returned by this method. That way, new tests will automatically 
  be discovered and run. 
  
- Without modifying the argument to `-[SLTestController runTests:withCompletionBlock:]`, 
+ Without modifying the argument to `-[SLTestController runTestsSet:withCompletionBlock:]`,
  tests may be conditionalized to run only in certain circumstances using APIs
  like `+isAbstract`, `+supportsCurrentPlatform`, and `+isFocused`.
 
@@ -57,11 +57,11 @@
  Returns the `SLTest` subclass with the specified name.
  
  This method may be used to retrieve a single `SLTest`, e.g. to pass to 
- `-[SLTestController runTests:withCompletionBlock:]`, without having to import
+ `-[SLTestController runTestsSet:withCompletionBlock:]`, without having to import
  that test's interface.
  
  Note that it may be easier to run a single test by [focusing](+isFocused) that test
- than by modifying the arguments to `-[SLTestController runTests:withCompletionBlock:]`.
+ than by modifying the arguments to `-[SLTestController runTestsSet:withCompletionBlock:]`.
 
  @param name The name of the test (`SLTest` subclass) to return.
 
@@ -146,7 +146,7 @@
  @return `YES` if any test cases are focused and can be run on the current platform, 
  `NO` otherwise.
 
- @see -[SLTestController runTests:withCompletionBlock:]
+ @see -[SLTestController runTestsSet:withCompletionBlock:]
  */
 + (BOOL)isFocused;
 

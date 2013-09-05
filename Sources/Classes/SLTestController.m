@@ -91,7 +91,7 @@ static void SLUncaughtExceptionHandler(NSException *exception)
 @implementation SLTestController {
     dispatch_queue_t _runQueue;
     BOOL _runningWithFocus;
-    NSSet *_testsToRun;
+    NSArray *_testsToRun;
     NSUInteger _numTestsExecuted, _numTestsFailed;
     void(^_completionBlock)(void);
 
@@ -118,7 +118,7 @@ static SLTestController *__sharedController = nil;
     return __sharedController;
 }
 
-+ (NSSet *)testsToRun:(NSSet *)tests withFocus:(BOOL *)withFocus {
++ (NSSet *)testsToRunSet:(NSSet *)tests withFocus:(BOOL *)withFocus {
     // only run tests that are concrete...
     NSMutableSet *testsToRun = [NSMutableSet setWithSet:tests];
     [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"isAbstract == NO"]];
@@ -136,6 +136,29 @@ static SLTestController *__sharedController = nil;
     }
     if (withFocus) *withFocus = runningWithFocus;
 
+    return [testsToRun copy];
+}
+
++ (NSArray *)testsToRunArray:(NSArray *)tests withFocus:(BOOL *)withFocus {
+    // only run tests that are concrete...
+    NSMutableArray *testsToRun = [NSMutableArray arrayWithArray:tests];
+    [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"isAbstract == NO"]];
+    
+    // ...that support the current platform...
+    [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"supportsCurrentPlatform == YES"]];
+    
+    // ...and that are focused (if any remaining are focused)
+    NSMutableArray *focusedTests = testsToRun;
+    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == NO"]];
+    
+    BOOL runningWithFocus = ([focusedTests count] > 0);
+    if (runningWithFocus) {
+        testsToRun = [NSMutableArray arrayWithArray:focusedTests];
+    }
+    if (withFocus) {
+        *withFocus = runningWithFocus;
+    }
+    
     return [testsToRun copy];
 }
 
@@ -230,7 +253,7 @@ static SLTestController *__sharedController = nil;
 #endif
 
     if (_runningWithFocus) {
-        SLLog(@"Focusing on test cases in specific tests: %@.", [[_testsToRun allObjects] componentsJoinedByString:@","]);
+        SLLog(@"Focusing on test cases in specific tests: %@.", [_testsToRun componentsJoinedByString:@","]);
     }
 
     [self warnIfAccessibilityInspectorIsEnabled];
@@ -238,11 +261,12 @@ static SLTestController *__sharedController = nil;
     [[SLLogger sharedLogger] logTestingStart];
 }
 
-- (void)runTests:(NSSet *)tests withCompletionBlock:(void (^)())completionBlock {
+- (void)runTestsSet:(NSSet *)tests withCompletionBlock:(void (^)())completionBlock {
     dispatch_async(_runQueue, ^{
         _completionBlock = completionBlock;
-
-        _testsToRun = [[self class] testsToRun:tests withFocus:&_runningWithFocus];
+        
+        NSSet *testsToRun = [[self class] testsToRunSet:tests withFocus:&_runningWithFocus];
+        _testsToRun = [NSArray arrayWithArray:[testsToRun allObjects]];
         if (![_testsToRun count]) {
             SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
             [self _finishTesting];
@@ -279,6 +303,51 @@ static SLTestController *__sharedController = nil;
             }
         }
 
+        [self _finishTesting];
+    });
+}
+
+- (void)runTestsArray:(NSArray *)tests withCompletionBlock:(void (^)())completionBlock {
+    dispatch_async(_runQueue, ^{
+        _completionBlock = completionBlock;
+        
+        _testsToRun = [[self class] testsToRunArray:tests withFocus:&_runningWithFocus];
+        if (![_testsToRun count]) {
+            SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
+            [self _finishTesting];
+            return;
+        }
+        
+        [self _beginTesting];
+        
+        for (Class testClass in _testsToRun) {
+            @autoreleasepool {
+                _currentTest = (SLTest *)[[testClass alloc] init];
+                
+                NSString *testName = NSStringFromClass(testClass);
+                [[SLLogger sharedLogger] logTestStart:testName];
+                
+                NSUInteger numCasesExecuted = 0, numCasesFailed = 0, numCasesFailedUnexpectedly = 0;
+                
+                BOOL testDidFinish = [_currentTest runAndReportNumExecuted:&numCasesExecuted
+                                                                    failed:&numCasesFailed
+                                                        failedUnexpectedly:&numCasesFailedUnexpectedly];
+                if (testDidFinish) {
+                    [[SLLogger sharedLogger] logTestFinish:testName
+                                      withNumCasesExecuted:numCasesExecuted
+                                            numCasesFailed:numCasesFailed
+                                numCasesFailedUnexpectedly:numCasesFailedUnexpectedly];
+                    if (numCasesFailed > 0) _numTestsFailed++;
+                } else {
+                    [[SLLogger sharedLogger] logTestAbort:testName];
+                    _numTestsFailed++;
+                }
+                _numTestsExecuted++;
+                
+                _currentTest = nil;
+            }
+        }
+        
         [self _finishTesting];
     });
 }

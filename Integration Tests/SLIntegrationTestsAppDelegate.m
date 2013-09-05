@@ -102,7 +102,7 @@
     }
 
     // Otherwise, run the tests
-    [[SLTestController sharedTestController] runTests:_tests withCompletionBlock:nil];
+    [[SLTestController sharedTestController] runTestsSet:_tests withCompletionBlock:nil];
 }
 
 // Called both by the UIAlertView callback below and the NSTimer above
