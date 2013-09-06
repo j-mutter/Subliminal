@@ -45,7 +45,7 @@ void SLLogAsync(NSString *format, ...) {
     va_start(args, format);
     NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
-    
+
     dispatch_async([[SLLogger sharedLogger] loggingQueue], ^{
         [[SLLogger sharedLogger] logMessage:message];
     });
@@ -87,7 +87,7 @@ void SLLogAsync(NSString *format, ...) {
         });
         return;
     }
-    
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logDebug('%@');", [debug slStringByEscapingForJavaScriptLiteral]];
 }
 
@@ -98,7 +98,7 @@ void SLLogAsync(NSString *format, ...) {
         });
         return;
     }
-    
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logMessage('%@');", [message slStringByEscapingForJavaScriptLiteral]];
 }
 
@@ -109,7 +109,7 @@ void SLLogAsync(NSString *format, ...) {
         });
         return;
     }
-    
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logWarning('%@');", [warning slStringByEscapingForJavaScriptLiteral]];
 }
 
@@ -120,7 +120,7 @@ void SLLogAsync(NSString *format, ...) {
         });
         return;
     }
-    
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logError('%@');", [error slStringByEscapingForJavaScriptLiteral]];
 }
 
@@ -171,7 +171,7 @@ numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
     } else {
         callSite = SLLoggerUnknownCallSite;
     }
-    
+
     NSString *exceptionDescription;
     if (expected) {
         exceptionDescription = [exception reason];
@@ -179,7 +179,7 @@ numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
         exceptionDescription = [NSString stringWithFormat:@"Unexpected exception occurred ***%@*** for reason: %@",
                                 [exception name], [exception reason]];
     }
-    
+
     NSString *message = [NSString stringWithFormat:@"%@: %@", callSite, exceptionDescription];
     [[SLLogger sharedLogger] logError:message];
 }
@@ -191,7 +191,7 @@ numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
         });
         return;
     }
-    
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logStart('Test case \"-[%@ %@]\" started.');", test, testCase];
 }
 
@@ -202,7 +202,7 @@ numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
         });
         return;
     }
-    
+
     if (expected) {
         [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logFail('FAIL: Test case \"-[%@ %@]\" failed.');", test, testCase];
     } else {
