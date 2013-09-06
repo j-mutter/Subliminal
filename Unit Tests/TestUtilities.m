@@ -11,7 +11,7 @@
 
 void SLRunTestsAndWaitUntilFinished(NSSet *tests, void (^completionBlock)()) {
     __block BOOL testingHasFinished = NO;
-    [[SLTestController sharedTestController] runTestSet:tests
+    [[SLTestController sharedTestController] runTests:tests
                                   withCompletionBlock:^{
                                       if (completionBlock) completionBlock();
                                       testingHasFinished = YES;
