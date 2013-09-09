@@ -134,27 +134,27 @@ void SLLogAsync(NSString *format, ...) {
 }
 
 - (void)logTestStart:(NSString *)test {
-    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" started.", test]];
+    [self logMessage:[NSString stringWithFormat:@"TEST \"%@\" STARTED.", test]];
 }
 
 - (void)logTestFinish:(NSString *)test
  withNumCasesExecuted:(NSUInteger)numCasesExecuted
        numCasesFailed:(NSUInteger)numCasesFailed
-       numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
-    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" finished: executed %u case%@, with %u failure%@ (%u unexpected).",
-                                                test, numCasesExecuted, (numCasesExecuted == 1 ? @"" : @"s"),
-                                                      numCasesFailed, (numCasesFailed == 1 ? @"" : @"s"), numCasesFailedUnexpectedly]];
+numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
+    [self logMessage:[NSString stringWithFormat:@"TEST \"%@\" COMPLETE: executed %u case%@, with %u failure%@ (%u unexpected).",
+                      test, numCasesExecuted, (numCasesExecuted == 1 ? @"" : @"s"),
+                      numCasesFailed, (numCasesFailed == 1 ? @"" : @"s"), numCasesFailedUnexpectedly]];
 }
 
 - (void)logTestAbort:(NSString *)test {
-    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" terminated abnormally.", test]];
+    [self logMessage:[NSString stringWithFormat:@"FAIL: Test \"%@\" terminated abnormally.", test]];
 }
 
 - (void)logTestingFinishWithNumTestsExecuted:(NSUInteger)numTestsExecuted
                               numTestsFailed:(NSUInteger)numTestsFailed {
-    [self logMessage:[NSString stringWithFormat:@"Testing finished: executed %u test%@, with %u failure%@.",
-                                                numTestsExecuted, (numTestsExecuted == 1 ? @"" : @"s"),
-                                                numTestsFailed, (numTestsFailed == 1 ? @"" : @"s")]];
+    [self logMessage:[NSString stringWithFormat:@"TESTING COMPLETE: executed %u test%@, with %u failure%@.",
+                      numTestsExecuted, (numTestsExecuted == 1 ? @"" : @"s"),
+                      numTestsFailed, (numTestsFailed == 1 ? @"" : @"s")]];
 }
 
 @end
@@ -204,9 +204,9 @@ void SLLogAsync(NSString *format, ...) {
     }
 
     if (expected) {
-        [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logFail('Test case \"-[%@ %@]\" failed.');", test, testCase];
+        [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logFail('FAIL: Test case \"-[%@ %@]\" failed.');", test, testCase];
     } else {
-        [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logIssue('Test case \"-[%@ %@]\" failed unexpectedly.');", test, testCase];
+        [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logIssue('FAIL: Test case \"-[%@ %@]\" failed unexpectedly.');", test, testCase];
     }
 }
 
@@ -217,8 +217,8 @@ void SLLogAsync(NSString *format, ...) {
         });
         return;
     }
-
-    [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logPass('Test case \"-[%@ %@]\" passed.');", test, testCase];
+    
+    [[SLTerminal sharedTerminal] evalWithFormat:@"UIALogger.logPass('PASS: Test case \"-[%@ %@]\" passed.');", test, testCase];
 }
 
 @end
