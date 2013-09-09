@@ -67,6 +67,8 @@
         [AbstractTestWhichSupportsOnly_iPad class],
         [ConcreteTestWhichSupportsOnlyiPad class],
         [TestThatIsNotFocused class],
+        [TestThatIsNotFocusedTwo class],
+        [TestThatIsNotFocusedThree class],
         [TestWithAFocusedTestCase class],
         [TestWithSomeFocusedTestCases class],
         [TestWithAFocusedPlatformSpecificTestCase class],

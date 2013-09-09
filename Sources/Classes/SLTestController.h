@@ -78,7 +78,7 @@
  @param tests The set of tests to run.
  @param completionBlock An optional block to execute once testing has finished. 
  */
-- (void)runTests:(NSSet *)tests withCompletionBlock:(void (^)())completionBlock;
+- (void)runTests:(id)tests withCompletionBlock:(void (^)())completionBlock;
 
 @end
 
@@ -94,7 +94,7 @@
 /// -------------------------------------------
 
 /**
- Determines whether the controller should wait, after `-runTests:withCompletionBlock:` 
+ Determines whether the controller should wait, after `-runTests:withCompletionBlock:`
  is invoked, to start testing.
  
  If this is YES, the test controller will show an alert after 

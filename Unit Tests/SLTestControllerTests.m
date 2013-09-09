@@ -56,6 +56,46 @@
 
 #pragma mark - Test execution
 
+#pragma mark -Test set type
+
+- (void)testTestsInSet
+{    
+    NSSet *testSet = [NSSet setWithObjects:[TestThatIsNotFocused class], [TestThatIsNotFocusedTwo class], [TestThatIsNotFocusedThree class], nil];
+    NSMutableArray *testMocks = [NSMutableArray arrayWithCapacity:[testSet count]];
+    
+    for (Class testClass in testSet) {
+        id testMock = [OCMockObject partialMockForClass:testClass];
+        
+        [[testMock expect] runAndReportNumExecuted:[OCMArg anyPointer]
+                                        failed:[OCMArg anyPointer]
+                            failedUnexpectedly:[OCMArg anyPointer]];
+
+        [testMocks addObject:testMock];
+    }
+    
+    SLRunTestsAndWaitUntilFinished(testSet, nil);
+    STAssertNoThrow([testMocks makeObjectsPerformSelector:@selector(verify)], @"Tests were not run as expected.");
+}
+
+- (void)testTestsInArray
+{
+    NSArray *testArray = [NSArray arrayWithObjects:[TestThatIsNotFocused class], [TestThatIsNotFocusedTwo class], [TestThatIsNotFocusedThree class], nil];
+    NSMutableArray *testMocks = [NSMutableArray arrayWithCapacity:[testArray count]];
+    
+    for (Class testClass in testArray) {
+        id testMock = [OCMockObject partialMockForClass:testClass];
+        
+        [[testMock expect] runAndReportNumExecuted:[OCMArg anyPointer]
+                                            failed:[OCMArg anyPointer]
+                                failedUnexpectedly:[OCMArg anyPointer]];
+        
+        [testMocks addObject:testMock];
+    }
+    
+    SLRunTestsAndWaitUntilFinished(testArray, nil);
+    STAssertNoThrow([testMocks makeObjectsPerformSelector:@selector(verify)], @"Tests were not run as expected.");
+}
+
 #pragma mark -Abstract tests
 
 - (void)testAbstractTestsAreNotRun {
@@ -98,7 +138,7 @@
 
 #pragma mark -Focusing
 
-- (void)testWhenSomeTestsAreFocusedOnlyThoseTestsAreRun {
+- (void)testWhenSomeTestsInSetAreFocusedOnlyThoseTestsAreRun {
     Class testThatIsNotFocusedClass = [TestThatIsNotFocused class];
     STAssertFalse([testThatIsNotFocusedClass isFocused],
                   @"For the purposes of this test, this SLTest must not be focused.");
@@ -122,6 +162,35 @@
                                                                      failed:[OCMArg anyPointer]
                                                          failedUnexpectedly:[OCMArg anyPointer]];
 
+    SLRunTestsAndWaitUntilFinished(tests, nil);
+    STAssertNoThrow([testThatIsNotFocusedClassMock verify], @"Un-focused tests was still run.");
+    STAssertNoThrow([testWithSomeFocusedTestCasesClassMock verify], @"Focused test was not run.");
+}
+
+- (void)testWhenSomeTestsInArrayAreFocusedOnlyThoseTestsAreRun {
+    Class testThatIsNotFocusedClass = [TestThatIsNotFocused class];
+    STAssertFalse([testThatIsNotFocusedClass isFocused],
+                  @"For the purposes of this test, this SLTest must not be focused.");
+    Class testWithSomeFocusedTestCasesClass = [TestWithSomeFocusedTestCases class];
+    STAssertTrue([testWithSomeFocusedTestCasesClass isFocused],
+                 @"For the purposes of this test, this SLTest must be focused.");
+    NSArray *tests = [NSArray arrayWithObjects:
+                    testThatIsNotFocusedClass,
+                    testWithSomeFocusedTestCasesClass,
+                    nil
+                    ];
+    
+    // only the focused test should run
+    id testThatIsNotFocusedClassMock = [OCMockObject partialMockForClass:testThatIsNotFocusedClass];
+    [[testThatIsNotFocusedClassMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                             failed:[OCMArg anyPointer]
+                                                 failedUnexpectedly:[OCMArg anyPointer]];
+    
+    id testWithSomeFocusedTestCasesClassMock = [OCMockObject partialMockForClass:testWithSomeFocusedTestCasesClass];
+    [[testWithSomeFocusedTestCasesClassMock expect] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                                     failed:[OCMArg anyPointer]
+                                                         failedUnexpectedly:[OCMArg anyPointer]];
+    
     SLRunTestsAndWaitUntilFinished(tests, nil);
     STAssertNoThrow([testThatIsNotFocusedClassMock verify], @"Un-focused tests was still run.");
     STAssertNoThrow([testWithSomeFocusedTestCasesClassMock verify], @"Focused test was not run.");
