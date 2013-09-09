@@ -83,6 +83,20 @@
 @end
 
 
+@interface TestThatIsNotFocusedTwo : SLTest
+
+- (void)testFoo;
+
+@end
+
+
+@interface TestThatIsNotFocusedThree : SLTest
+
+- (void)testFoo;
+
+@end
+
+
 @interface TestWithAFocusedTestCase : SLTest
 
 - (void)testOne;

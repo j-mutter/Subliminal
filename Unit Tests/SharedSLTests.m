@@ -86,6 +86,20 @@
 @end
 
 
+@implementation TestThatIsNotFocusedTwo
+
+- (void)testFoo {}
+
+@end
+
+
+@implementation TestThatIsNotFocusedThree
+
+- (void)testFoo {}
+
+@end
+
+
 @implementation TestWithAFocusedTestCase
 
 - (void)testOne {}

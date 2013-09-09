@@ -122,13 +122,13 @@ static SLTestController *__sharedController = nil;
     // only run tests that are concrete...
     NSMutableArray *testsToRun = [NSMutableArray arrayWithArray:[tests allObjects]];
     [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"isAbstract == NO"]];
-
+    
     // ...that support the current platform...
     [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"supportsCurrentPlatform == YES"]];
     
     // ...and that are focused (if any remaining are focused)
-    NSMutableArray *focusedTests = testsToRun;
-    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == NO"]];
+    NSMutableArray *focusedTests = [testsToRun mutableCopy];
+    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
     
     BOOL runningWithFocus = ([focusedTests count] > 0);
     if (runningWithFocus) {
