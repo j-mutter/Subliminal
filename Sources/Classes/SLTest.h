@@ -45,7 +45,7 @@
  with the set returned by this method. That way, new tests will automatically 
  be discovered and run. 
  
- Without modifying the argument to `-[SLTestController runTests:withCompletionBlock:]`, 
+ Without modifying the argument to `-[SLTestController runTests:withCompletionBlock:]`,
  tests may be conditionalized to run only in certain circumstances using APIs
  like `+isAbstract`, `+supportsCurrentPlatform`, and `+isFocused`.
 

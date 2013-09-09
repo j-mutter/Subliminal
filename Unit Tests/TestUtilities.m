@@ -9,7 +9,7 @@
 #import "TestUtilities.h"
 #import <OCMock/OCMock.h>
 
-void SLRunTestsAndWaitUntilFinished(NSSet *tests, void (^completionBlock)()) {
+void SLRunTestsAndWaitUntilFinished(id tests, void (^completionBlock)()) {
     __block BOOL testingHasFinished = NO;
     [[SLTestController sharedTestController] runTests:tests
                                   withCompletionBlock:^{
