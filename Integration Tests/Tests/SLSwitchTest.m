@@ -2,7 +2,12 @@
 //  SLSwitchTest.m
 //  Subliminal
 //
+<<<<<<< HEAD
 //  Created by Justin Mutter on 2013-09-26.
+=======
+//  Created by Justin Mutter on 2013-09-13.
+//  Copyright (c) 2013 Inkling. All rights reserved.
+>>>>>>> f520f77... Adds SLSwitch
 //
 
 #import "SLIntegrationTest.h"
@@ -36,7 +41,7 @@
     [_aSwitch setValue:ON];
 }
 
-- (void)focus_testSLSwitchSetValue
+- (void)testSLSwitchSetValue
 {
     [_aSwitch setValue:OFF];
     SLAssertTrue([[_aSwitch value] boolValue] == NO, @"Switch value was not set to OFF");
@@ -44,7 +49,7 @@
     SLAssertTrue([[_aSwitch value] boolValue] == YES, @"Switch value was not set to ON");
 }
 
-- (void)focus_testSLSwitchIsOn
+- (void)testSLSwitchIsOn
 {
     [_aSwitch setValue:OFF];
     SLAssertTrue([_aSwitch isOn] == NO, @"Switch should be OFF");
@@ -52,7 +57,7 @@
     SLAssertTrue([_aSwitch isOn] == YES, @"Switch should be ON");
 }
 
-- (void)focus_testSLSwitchCanToggleWithTap {
+- (void)testSLSwitchCanToggleWithTap {
     BOOL value = [_aSwitch.value boolValue];
     [_aSwitch tap];
     SLAssertFalse(value == [_aSwitch.value boolValue], @"Value should have changed");
