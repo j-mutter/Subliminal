@@ -8,6 +8,9 @@
 
 #import <Subliminal/Subliminal.h>
 
+#define ON YES
+#define OFF NO
+
 @interface SLSwitch : SLButton
 
 - (void)setValue:(BOOL)value;
