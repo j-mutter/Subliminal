@@ -11,6 +11,11 @@
 
 @implementation SLSwitch
 
+- (BOOL)isOn
+{
+    return [[self value] boolValue];
+}
+
 - (void)setValue:(BOOL)value
 {
     NSString *valueString = value ? @"true" : @"false";

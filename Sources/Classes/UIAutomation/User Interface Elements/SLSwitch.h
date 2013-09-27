@@ -13,6 +13,8 @@
 
 @interface SLSwitch : SLButton
 
+@property (nonatomic,getter=isOn) BOOL on;
+
 - (void)setValue:(BOOL)value;
 
 @end
