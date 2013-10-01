@@ -2,12 +2,8 @@
 //  SLSwitchTest.m
 //  Subliminal
 //
-<<<<<<< HEAD
-//  Created by Justin Mutter on 2013-09-26.
-=======
 //  Created by Justin Mutter on 2013-09-13.
 //  Copyright (c) 2013 Inkling. All rights reserved.
->>>>>>> f520f77... Adds SLSwitch
 //
 
 #import "SLIntegrationTest.h"
