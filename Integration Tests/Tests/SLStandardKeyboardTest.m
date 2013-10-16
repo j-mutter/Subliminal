@@ -22,14 +22,14 @@
 
 #import "SLIntegrationTest.h"
 
-@interface SLKeyboardTest : SLIntegrationTest
+@interface SLStandardKeyboardTest : SLIntegrationTest
 
 @end
 
-@implementation SLKeyboardTest
+@implementation SLStandardKeyboardTest
 
 + (NSString *)testCaseViewControllerClassName {
-    return @"SLKeyboardTestViewController";
+    return @"SLStandardKeyboardTestViewController";
 }
 
 - (void)tearDownTestCaseWithSelector:(SEL)testCaseSelector {
@@ -44,7 +44,7 @@
     [self wait:[keyboardInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
     
     CGRect expectedKeyboardFrame = [keyboardInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    CGRect actualKeyboardFrame = [UIAElement([SLKeyboard keyboard]) rect];
+    CGRect actualKeyboardFrame = [UIAElement([SLStandardKeyboard keyboard]) rect];
     SLAssertTrue(CGRectEqualToRect(expectedKeyboardFrame, actualKeyboardFrame),
                  @"The shared keyboard did not match the expected object.");
 }
@@ -54,7 +54,7 @@
     [self wait:[SLAskApp(keyboardInfo)[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
 
     NSString *const kExpectedText = @"foo";
-    [UIAElement([SLKeyboard keyboard]) typeString:kExpectedText];
+    [UIAElement([SLStandardKeyboard keyboard]) typeString:kExpectedText];
     NSString *actualText = SLAskApp(text);
     SLAssertTrue([kExpectedText isEqualToString:actualText],
                  @"Did not type string as expected.");
@@ -65,7 +65,7 @@
     [self wait:[SLAskApp(keyboardInfo)[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
 
     NSString *specialCharacter = @">";
-    SLKeyboardKey *specialCharacterKey = [SLKeyboardKey elementWithAccessibilityLabel:specialCharacter];
+    SLStandardKeyboardKey *specialCharacterKey = [SLStandardKeyboardKey elementWithAccessibilityLabel:specialCharacter];
     SLAssertFalse([UIAElement(specialCharacterKey) isValidAndVisible],
                   @"For the purposes of this test case, the keyboard should not currently be showing this key.");
 
@@ -75,7 +75,7 @@
                  @"For the purposes of this test case, the string to be typed\
                  must contain a special character not visible before typing.");
 
-    SLAssertNoThrow([UIAElement([SLKeyboard keyboard]) typeString:kExpectedText],
+    SLAssertNoThrow([UIAElement([SLStandardKeyboard keyboard]) typeString:kExpectedText],
                     @"The keyboard was not able to type a string containing a special character\
                     (not visible before typing).");
     NSString *actualText = SLAskApp(text);
@@ -88,10 +88,20 @@
     [self wait:[SLAskApp(keyboardInfo)[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
 
     NSString *const kExpectedText = @"J";
-    [UIAElement([SLKeyboardKey elementWithAccessibilityLabel:kExpectedText]) tap];
+    [UIAElement([SLStandardKeyboardKey elementWithAccessibilityLabel:kExpectedText]) tap];
     NSString *actualText = SLAskApp(text);
     SLAssertTrue([kExpectedText isEqualToString:actualText],
                  @"Did not type character as expected.");
+}
+
+- (void)focus_testHideKeyboard {
+    SLAskApp(showKeyboard);
+    [self wait:[SLAskApp(keyboardInfo)[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
+    
+    [[SLStandardKeyboard keyboard] hide];
+    [self wait:[SLAskApp(keyboardInfo)[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
+    
+    SLAssertTrueWithTimeout([[SLStandardKeyboard keyboard] isValid] == NO, 2.0 , @"Keyboard should not be valid.");
 }
 
 @end

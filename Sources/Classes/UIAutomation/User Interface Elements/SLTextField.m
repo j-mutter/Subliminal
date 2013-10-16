@@ -31,6 +31,11 @@
 }
 
 - (void)setText:(NSString *)text {
+    [self setText:text withKeyboard:[SLStandardKeyboard keyboard]];
+}
+
+- (void)setText:(NSString *)text withKeyboard:(id<SLKeyboard>)keyboard
+{
     // Tap to show the keyboard (if the field doesn't already have keyboard focus,
     // because in that case a real user would probably not tap again before typing)
     if (![self hasKeyboardFocus]) {
@@ -39,8 +44,8 @@
 
     // Clear any current text before typing the new text.
     [self waitUntilTappable:YES thenSendMessage:@"setValue('')"];
-    
-    [[SLKeyboard keyboard] typeString:text];
+
+    [keyboard typeString:text];
 }
 
 - (BOOL)matchesObject:(NSObject *)object {
@@ -106,10 +111,10 @@
             [NSThread sleepForTimeInterval:1.0];
         }
         [self waitUntilTappable:YES thenSendMessage:@"setValue(' ')"];
-        [[SLKeyboardKey elementWithAccessibilityLabel:@"Delete"] tap];
+        [[SLStandardKeyboardKey elementWithAccessibilityLabel:@"Delete"] tap];
     }
 
-    [[SLKeyboard keyboard] typeString:text];
+    [[SLStandardKeyboard keyboard] typeString:text];
 }
 
 @end

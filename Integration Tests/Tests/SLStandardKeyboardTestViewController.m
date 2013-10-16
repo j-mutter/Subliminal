@@ -24,11 +24,11 @@
 
 #import <Subliminal/SLTestController+AppHooks.h>
 
-@interface SLKeyboardTestViewController : SLTestCaseViewController
+@interface SLStandardKeyboardTestViewController : SLTestCaseViewController
 
 @end
 
-@implementation SLKeyboardTestViewController {
+@implementation SLStandardKeyboardTestViewController {
     UITextField *_textField;
     NSDictionary *_keyboardInfo;
 }

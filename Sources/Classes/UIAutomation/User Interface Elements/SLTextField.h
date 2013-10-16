@@ -21,6 +21,7 @@
 //
 
 #import "SLElement.h"
+#import "SLKeyboard.h"
 
 /**
  `SLTextField` matches instances of `UITextField`.
@@ -38,6 +39,18 @@
  timeout after the element becomes valid elapses.
  */
 @property (nonatomic, copy) NSString *text;
+
+/**
+ Type the text in the text field with a specific keyboard.
+ 
+ @exception SLUIAElementInvalidException Raised if the element is not valid 
+ by the end of the [default timeout](+defaultTimeout).
+ 
+ @exception SLUIAElementNotTappableException Raised if the element is not 
+ tappable when whatever amount of time remains of the default timeout after
+ the element becomes valid elapses.
+ */
+- (void)setText:(NSString *)text withKeyboard:(id<SLKeyboard>)keyboard;
 
 @end
 

@@ -108,8 +108,8 @@
 		F089F98717445D9A00DF1F25 /* SLStaticElement.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F98517445D9A00DF1F25 /* SLStaticElement.m */; };
 		F089F99417458BA300DF1F25 /* SLWindowTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F99217458BA300DF1F25 /* SLWindowTest.m */; };
 		F089F99517458BA300DF1F25 /* SLWindowTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F99317458BA300DF1F25 /* SLWindowTestViewController.m */; };
-		F089F9E21745FB7E00DF1F25 /* SLKeyboardTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F9E01745FB7E00DF1F25 /* SLKeyboardTest.m */; };
-		F089F9E31745FB7E00DF1F25 /* SLKeyboardTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F9E11745FB7E00DF1F25 /* SLKeyboardTestViewController.m */; };
+		F089F9E21745FB7E00DF1F25 /* SLStandardKeyboardTest.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F9E01745FB7E00DF1F25 /* SLStandardKeyboardTest.m */; };
+		F089F9E31745FB7E00DF1F25 /* SLStandardKeyboardTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F089F9E11745FB7E00DF1F25 /* SLStandardKeyboardTestViewController.m */; };
 		F08B86EB16859C8D00C4FE44 /* libOCMock.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F08B86DB16859C4000C4FE44 /* libOCMock.a */; };
 		F08B87F21685A00400C4FE44 /* SharedSLTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F08B87F11685A00400C4FE44 /* SharedSLTests.m */; };
 		F08B87F51685A07B00C4FE44 /* SLTestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F08B87F41685A07B00C4FE44 /* SLTestTests.m */; };
@@ -330,8 +330,8 @@
 		F089F98517445D9A00DF1F25 /* SLStaticElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLStaticElement.m; sourceTree = "<group>"; };
 		F089F99217458BA300DF1F25 /* SLWindowTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLWindowTest.m; sourceTree = "<group>"; };
 		F089F99317458BA300DF1F25 /* SLWindowTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLWindowTestViewController.m; sourceTree = "<group>"; };
-		F089F9E01745FB7E00DF1F25 /* SLKeyboardTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLKeyboardTest.m; sourceTree = "<group>"; };
-		F089F9E11745FB7E00DF1F25 /* SLKeyboardTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLKeyboardTestViewController.m; sourceTree = "<group>"; };
+		F089F9E01745FB7E00DF1F25 /* SLStandardKeyboardTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLStandardKeyboardTest.m; sourceTree = "<group>"; };
+		F089F9E11745FB7E00DF1F25 /* SLStandardKeyboardTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLStandardKeyboardTestViewController.m; sourceTree = "<group>"; };
 		F08B86CC16859C4000C4FE44 /* OCMock.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OCMock.xcodeproj; path = OCMock/Source/OCMock.xcodeproj; sourceTree = "<group>"; };
 		F08B87F01685A00400C4FE44 /* SharedSLTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedSLTests.h; sourceTree = "<group>"; };
 		F08B87F11685A00400C4FE44 /* SharedSLTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SharedSLTests.m; sourceTree = "<group>"; };
@@ -735,13 +735,13 @@
 			name = "SLWindow Tests";
 			sourceTree = "<group>";
 		};
-		F089F9DC1745FB3800DF1F25 /* SLKeyboard Tests */ = {
+		F089F9DC1745FB3800DF1F25 /* SLStandardKeyboard Tests */ = {
 			isa = PBXGroup;
 			children = (
-				F089F9E01745FB7E00DF1F25 /* SLKeyboardTest.m */,
-				F089F9E11745FB7E00DF1F25 /* SLKeyboardTestViewController.m */,
+				F089F9E01745FB7E00DF1F25 /* SLStandardKeyboardTest.m */,
+				F089F9E11745FB7E00DF1F25 /* SLStandardKeyboardTestViewController.m */,
 			);
-			name = "SLKeyboard Tests";
+			name = "SLStandardKeyboard Tests";
 			sourceTree = "<group>";
 		};
 		F089F9FD1746B1D200DF1F25 /* SLStaticElement Tests */ = {
@@ -828,7 +828,7 @@
 				F077D70016D9D71E00908FF5 /* SLElement Visibility Tests */,
 				F05263C316D2C2CF0090174F /* SLElement Matching Tests */,
 				0696BA5E16E013DF00DD70CF /* SLElement Gestures and Actions Tests */,
-				F089F9DC1745FB3800DF1F25 /* SLKeyboard Tests */,
+				F089F9DC1745FB3800DF1F25 /* SLStandardKeyboard Tests */,
 				F00800D3174C2871001927AC /* SLPopover Tests */,
 				F089F9FD1746B1D200DF1F25 /* SLStaticElement Tests */,
 				2C903BB917F525C900555317 /* SLSwitch Tests */,
@@ -1221,8 +1221,8 @@
 				F0CC759B173B097800E8F94A /* SLElementTapTestViewController.m in Sources */,
 				F089F99417458BA300DF1F25 /* SLWindowTest.m in Sources */,
 				F089F99517458BA300DF1F25 /* SLWindowTestViewController.m in Sources */,
-				F089F9E21745FB7E00DF1F25 /* SLKeyboardTest.m in Sources */,
-				F089F9E31745FB7E00DF1F25 /* SLKeyboardTestViewController.m in Sources */,
+				F089F9E21745FB7E00DF1F25 /* SLStandardKeyboardTest.m in Sources */,
+				F089F9E31745FB7E00DF1F25 /* SLStandardKeyboardTestViewController.m in Sources */,
 				F05D2B061746B55C0089DB9E /* SLStaticElementTest.m in Sources */,
 				F05D2B071746B55C0089DB9E /* SLStaticElementTestViewController.m in Sources */,
 				F00800C7174B3349001927AC /* SLButtonTest.m in Sources */,

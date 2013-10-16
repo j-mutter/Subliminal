@@ -23,9 +23,9 @@
 #import "SLKeyboard.h"
 #import "SLUIAElement+Subclassing.h"
 
-@implementation SLKeyboard
+@implementation SLStandardKeyboard
 
-+ (SLKeyboard *)keyboard {
++ (SLStandardKeyboard *)keyboard {
     return [[self alloc] initWithUIARepresentation:@"UIATarget.localTarget().frontMostApp().keyboard()"];
 }
 
@@ -52,10 +52,15 @@
     }
 }
 
+- (void)hide
+{
+    [[SLStandardKeyboardKey elementWithAccessibilityLabel:(@"Hide keyboard")] tap];
+}
+
 @end
 
 
-@implementation SLKeyboardKey {
+@implementation SLStandardKeyboardKey {
     NSString *_keyLabel;
 }
 

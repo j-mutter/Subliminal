@@ -23,40 +23,51 @@
 #import "SLStaticElement.h"
 #import "SLButton.h"
 
-/**
- The SLKeyboard allows you to test whether your application's keyboard 
- is visible, and type strings.
-
- To tap individual keys on the keyboard, use SLKeyboardKey.
- */
-@interface SLKeyboard : SLStaticElement
+@protocol SLKeyboard <NSObject>
 
 /**
  Returns an element representing the application's keyboard.
  
  @return An element representing the application's keyboard.
  */
-+ (SLKeyboard *)keyboard;
++ (instancetype)keyboard;
 
 /**
- Taps the keys of the specified keyboard as required 
+ Taps the keys of the specified keyboard as required
  to generate the specified string.
  
- This string may contain characters that do not appear on the keyboard 
- in the keyboard's current state--the keyboard will change keyplanes 
+ This string may contain characters that do not appear on the keyboard
+ in the keyboard's current state--the keyboard will change keyplanes
  as necessary to make the corresponding keys visible.
-
+ 
  @param string The string to be typed on the keyboard.
  */
 - (void)typeString:(NSString *)string;
+
+@optional
+/**
+ Tap the keyboard's "Hide Keyboard" button to hide the keyboard without 
+ executing any done/submit actions
+ */
+- (void)hide;
+
+@end
+
+/**
+ The SLStandardKeyboard allows you to test whether your application's keyboard 
+ is visible, and type strings.
+
+ To tap individual keys on the keyboard, use SLStandardKeyboardKey.
+ */
+@interface SLStandardKeyboard : SLStaticElement <SLKeyboard>
 
 @end
 
 
 /**
- Instances of SLKeyboardKey refer to individual keys on the application's keyboard.
+ Instances of SLStandardKeyboardKey refer to individual keys on the application's keyboard.
  */
-@interface SLKeyboardKey : SLStaticElement
+@interface SLStandardKeyboardKey : SLStaticElement
 
 /**
  Creates and returns an element which represents the keyboard key with the specified label.
