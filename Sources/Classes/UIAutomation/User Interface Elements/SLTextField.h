@@ -52,6 +52,13 @@
  */
 - (void)setText:(NSString *)text withKeyboard:(id<SLKeyboard>)keyboard;
 
+/**
+ The default keyboard to be used by `setText:` and `setText:withKeyboard`.
+
+ Defaults to SLStandardKeyboard
+ */
+@property (nonatomic) id<SLKeyboard> defaultKeyboard;
+
 @end
 
 /**

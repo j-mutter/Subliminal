@@ -31,7 +31,7 @@
 }
 
 - (void)setText:(NSString *)text {
-    [self setText:text withKeyboard:[SLStandardKeyboard keyboard]];
+    [self setText:text withKeyboard: _defaultKeyboard ?: [SLStandardKeyboard keyboard]];
 }
 
 - (void)setText:(NSString *)text withKeyboard:(id<SLKeyboard>)keyboard
