@@ -320,49 +320,66 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
 - (void)runTests:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock {
     dispatch_async(_runQueue, ^{
-        _completionBlock = completionBlock;
-
-        _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
-        _runSeed = seed;
-        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
-        if (![_testsToRun count]) {
-            SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
-            [self _finishTesting];
-            return;
-        }
-
-        [self _beginTesting];
-
-        for (Class testClass in _testsToRun) {
-            @autoreleasepool {
-                _currentTest = (SLTest *)[[testClass alloc] init];
-
-                NSString *testName = NSStringFromClass(testClass);
-                [[SLLogger sharedLogger] logTestStart:testName];
-
-                NSUInteger numCasesExecuted = 0, numCasesFailed = 0, numCasesFailedUnexpectedly = 0;
-
-                BOOL testDidFinish = [_currentTest runAndReportNumExecuted:&numCasesExecuted
-                                                                    failed:&numCasesFailed
-                                                        failedUnexpectedly:&numCasesFailedUnexpectedly];
-                if (testDidFinish) {
-                    [[SLLogger sharedLogger] logTestFinish:testName
-                                      withNumCasesExecuted:numCasesExecuted
-                                            numCasesFailed:numCasesFailed
-                                numCasesFailedUnexpectedly:numCasesFailedUnexpectedly];
-                    if (numCasesFailed > 0) _numTestsFailed++;
-                } else {
-                    [[SLLogger sharedLogger] logTestAbort:testName];
-                    _numTestsFailed++;
-                }
-                _numTestsExecuted++;
-
-                _currentTest = nil;
-            }
-        }
-
-        [self _finishTesting];
+        [self runTestsSync:tests usingSeed:seed withCompletionBlock:completionBlock finishTesting:YES];
     });
+}
+
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock
+{
+    [self runTestsSync:tests withCompletionBlock:completionBlock finishTesting:NO];
+}
+
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting
+{
+    [self runTestsSync:tests usingSeed:SLTestControllerRandomSeed withCompletionBlock:nil finishTesting:finishTesting];
+}
+
+- (void)runTestsSync:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting
+{
+    _completionBlock = completionBlock;
+    
+    _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
+    _runSeed = seed;
+    _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
+    if (![_testsToRun count]) {
+        SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
+        [self _finishTesting];
+        return;
+    }
+    
+    [self _beginTesting];
+    
+    for (Class testClass in _testsToRun) {
+        @autoreleasepool {
+            _currentTest = (SLTest *)[[testClass alloc] init];
+            
+            NSString *testName = NSStringFromClass(testClass);
+            [[SLLogger sharedLogger] logTestStart:testName];
+            
+            NSUInteger numCasesExecuted = 0, numCasesFailed = 0, numCasesFailedUnexpectedly = 0;
+            
+            BOOL testDidFinish = [_currentTest runAndReportNumExecuted:&numCasesExecuted
+                                                                failed:&numCasesFailed
+                                                    failedUnexpectedly:&numCasesFailedUnexpectedly];
+            if (testDidFinish) {
+                [[SLLogger sharedLogger] logTestFinish:testName
+                                  withNumCasesExecuted:numCasesExecuted
+                                        numCasesFailed:numCasesFailed
+                            numCasesFailedUnexpectedly:numCasesFailedUnexpectedly];
+                if (numCasesFailed > 0) _numTestsFailed++;
+            } else {
+                [[SLLogger sharedLogger] logTestAbort:testName];
+                _numTestsFailed++;
+            }
+            _numTestsExecuted++;
+            
+            _currentTest = nil;
+        }
+    }
+    
+    if (finishTesting) {
+        [self _finishTesting];
+    }
 }
 
 - (void)_finishTesting {
