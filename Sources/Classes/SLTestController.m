@@ -203,7 +203,17 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
     // ...and that are focused (if any remaining are focused)
     NSMutableArray *focusedTests = [testsToRun mutableCopy];
-    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
+    NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"TESTS"];
+    // ...if tests to focus are defined in the TESTS environment variable, use those. Otherwise, filter by "focus_" prefix
+    if (envTests) {
+        NSArray *testArray = [envTests componentsSeparatedByString:@","];
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+            return [testArray containsObject:NSStringFromClass(evaluatedObject)];
+        }]];
+    } else {
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
+    }
+    
     BOOL runningWithFocus = ([focusedTests count] > 0);
     if (runningWithFocus) {
         testsToRun = focusedTests;
