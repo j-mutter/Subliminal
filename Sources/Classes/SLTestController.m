@@ -206,10 +206,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"TESTS"];
     // ...if tests to focus are defined in the TESTS environment variable, use those. Otherwise, filter by "focus_" prefix
     if ([envTests length] > 0) {
-        NSArray *testArray = [envTests componentsSeparatedByString:@","];
-        [focusedTests filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
-            return [testArray containsObject:NSStringFromClass(evaluatedObject)];
-        }]];
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocusedWithEnvVar == YES"]];
     } else {
         [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
     }
