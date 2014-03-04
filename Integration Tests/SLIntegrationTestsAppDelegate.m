@@ -55,7 +55,7 @@
     } else {
         // Filter the tests for the `SLTestController`
         // so that the `SLTestsViewController` only displays appropriate tests
-        _tests = [SLTestController testsToRun:[SLTest allTests] usingSeed:NULL withFocus:NULL];
+        _tests = [SLTestController testsToRun:[SLTest allTests] usingSeed:NULL withFocus:NULL skipTests:NULL];
         rootViewController = [[SLTestsViewController alloc] initWithTests:_tests];
     }
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:rootViewController];

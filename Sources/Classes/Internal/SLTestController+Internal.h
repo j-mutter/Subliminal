@@ -56,9 +56,12 @@
  
  @param withFocus   If this is non-`NULL`, upon return, it will be set to `YES`
                     if any of the tests [are focused](+[SLTest isFocused]), `NO` otherwise.
-
+ 
+ @param skipTests   If this is non-`NULL`, upon return, it will be set to `YES`, indicating that no tests are focused and
+                    no tests from the test set should be run.
+ 
  @return            A filtered and ordered array of tests to run.
  */
-+ (NSArray *)testsToRun:(id)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus;
++ (NSArray *)testsToRun:(id)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus skipTests:(BOOL *)skipTests;
 
 @end
