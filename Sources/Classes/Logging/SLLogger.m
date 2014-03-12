@@ -195,7 +195,7 @@ void SLLogDebugAsync(NSString *format, ...) {
  withNumCasesExecuted:(NSUInteger)numCasesExecuted
        numCasesFailed:(NSUInteger)numCasesFailed
        numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
-    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" finished: executed %u case%@, with %u failure%@ (%u unexpected).",
+    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" finished: executed %tu case%@, with %tu failure%@ (%tu unexpected).",
                                                 test, numCasesExecuted, (numCasesExecuted == 1 ? @"" : @"s"),
                                                       numCasesFailed, (numCasesFailed == 1 ? @"" : @"s"), numCasesFailedUnexpectedly]];
 }
@@ -206,7 +206,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 
 - (void)logTestingFinishWithNumTestsExecuted:(NSUInteger)numTestsExecuted
                               numTestsFailed:(NSUInteger)numTestsFailed {
-    [self logMessage:[NSString stringWithFormat:@"Testing finished: executed %u test%@, with %u failure%@.",
+    [self logMessage:[NSString stringWithFormat:@"Testing finished: executed %tu test%@, with %tu failure%@.",
                                                 numTestsExecuted, (numTestsExecuted == 1 ? @"" : @"s"),
                                                 numTestsFailed, (numTestsFailed == 1 ? @"" : @"s")]];
 }

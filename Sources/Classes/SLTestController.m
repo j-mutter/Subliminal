@@ -192,7 +192,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
         srandom(seedUsed);
         // http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
         for (NSUInteger i = [testsToRun count] - 1; i > 0; --i) {
-            [testsToRun exchangeObjectAtIndex:i withObjectAtIndex:random_uniform(i + 1)];
+            [testsToRun exchangeObjectAtIndex:i withObjectAtIndex:random_uniform((u_int32_t)(i + 1))];
         }
     }
     // now filter the array: only run tests that are concrete...

@@ -430,7 +430,7 @@ static BOOL SLAlertHandlerLoggingEnabled = NO;
     NSUInteger elementIndex = 0;
 
     NSString *UIAAlertHandler = [NSString stringWithFormat:@"\
-                                    var textField = %@.%@()[%u];\
+                                    var textField = %@.%@()[%tu];\
                                     if (textField.isValid()) {\
                                         textField.setValue('%@');\
                                         return true;\
