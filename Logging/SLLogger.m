@@ -32,6 +32,11 @@ NSString *const SLLoggerExceptionLineNumberKey    = @"SLLoggerExceptionLineNumbe
 
 NSString *const SLLoggerUnknownCallSite           = @"Unknown location";
 
+/**
+ Identifier for the `loggingQueue` for use with `dispatch_get_specific`.
+ */
+static const void *const kLoggingQueueIdentifier = &kLoggingQueueIdentifier;
+
 
 void SLLog(NSString *format, ...) {
     va_list args;
@@ -122,20 +127,32 @@ void SLLogDebugAsync(NSString *format, ...) {
     self = [super init];
     if (self) {
         _loggingQueue = dispatch_queue_create("com.inkling.subliminal.SLUIALogger.loggingQueue", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_set_specific(_loggingQueue, kLoggingQueueIdentifier, (void *)kLoggingQueueIdentifier, NULL);
     }
     return self;
 }
 
 - (void)dealloc {
+    // On OS X 10.8, dispatch objects are NSObjects, and ARC renders it unnecessary
+    // (and impossible) to manually release objects.
+    // But on iOS, dispatch objects only become NSObjects in iOS 6,
+    // and Subliminal still supports 5.1.
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     dispatch_release(_loggingQueue);
+#endif
 }
 
 - (dispatch_queue_t)loggingQueue {
     return _loggingQueue;
 }
 
+- (BOOL)currentQueueIsLoggingQueue
+{
+    return dispatch_get_specific(kLoggingQueueIdentifier) != NULL;
+}
+
 - (void)logDebug:(NSString *)debug {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logDebug:debug];
         });
@@ -146,7 +163,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logMessage:(NSString *)message {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logMessage:message];
         });
@@ -157,7 +174,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logWarning:(NSString *)warning {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logWarning:warning];
         });
@@ -168,7 +185,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logError:(NSString *)error {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logError:error];
         });
@@ -195,9 +212,10 @@ void SLLogDebugAsync(NSString *format, ...) {
  withNumCasesExecuted:(NSUInteger)numCasesExecuted
        numCasesFailed:(NSUInteger)numCasesFailed
        numCasesFailedUnexpectedly:(NSUInteger)numCasesFailedUnexpectedly {
-    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" finished: executed %tu case%@, with %tu failure%@ (%tu unexpected).",
-                                                test, numCasesExecuted, (numCasesExecuted == 1 ? @"" : @"s"),
-                                                      numCasesFailed, (numCasesFailed == 1 ? @"" : @"s"), numCasesFailedUnexpectedly]];
+
+    [self logMessage:[NSString stringWithFormat:@"Test \"%@\" finished: executed %lu case%@, with %lu failure%@ (%lu unexpected).",
+                                                test, (unsigned long)numCasesExecuted, (numCasesExecuted == 1 ? @"" : @"s"),
+                                                      (unsigned long)numCasesFailed, (numCasesFailed == 1 ? @"" : @"s"), (unsigned long)numCasesFailedUnexpectedly]];
 }
 
 - (void)logTestAbort:(NSString *)test {
@@ -206,9 +224,20 @@ void SLLogDebugAsync(NSString *format, ...) {
 
 - (void)logTestingFinishWithNumTestsExecuted:(NSUInteger)numTestsExecuted
                               numTestsFailed:(NSUInteger)numTestsFailed {
-    [self logMessage:[NSString stringWithFormat:@"Testing finished: executed %tu test%@, with %tu failure%@.",
-                                                numTestsExecuted, (numTestsExecuted == 1 ? @"" : @"s"),
-                                                numTestsFailed, (numTestsFailed == 1 ? @"" : @"s")]];
+    [self logMessage:[NSString stringWithFormat:@"Testing finished: executed %lu test%@, with %lu failure%@.",
+                                                (unsigned long)numTestsExecuted, (numTestsExecuted == 1 ? @"" : @"s"),
+                                                (unsigned long)numTestsFailed, (numTestsFailed == 1 ? @"" : @"s")]];
+}
+
+- (void)logUncaughtException:(NSException *)exception {
+    NSMutableString *exceptionMessage = [[NSMutableString alloc] initWithString:@"Uncaught exception occurred"];
+    [exceptionMessage appendFormat:@": ***%@***", [exception name]];
+    NSString *exceptionReason = [exception reason];
+    if ([exceptionReason length]) {
+        [exceptionMessage appendFormat:@" for reason: %@", exceptionReason];
+    }
+
+    [self logError:exceptionMessage];
 }
 
 @end
@@ -239,7 +268,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logTest:(NSString *)test caseStart:(NSString *)testCase {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logTest:test caseStart:testCase];
         });
@@ -250,7 +279,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logTest:(NSString *)test caseFail:(NSString *)testCase expected:(BOOL)expected {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logTest:test caseFail:testCase expected:expected];
         });
@@ -265,7 +294,7 @@ void SLLogDebugAsync(NSString *format, ...) {
 }
 
 - (void)logTest:(NSString *)test casePass:(NSString *)testCase {
-    if (dispatch_get_current_queue() != _loggingQueue) {
+    if (![self currentQueueIsLoggingQueue]) {
         dispatch_sync(_loggingQueue, ^{
             [self logTest:test casePass:testCase];
         });
