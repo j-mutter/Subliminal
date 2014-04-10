@@ -37,6 +37,39 @@
 void SLLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
 
 /**
+ Logs a debug message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logDebug:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogDebug(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+
+/**
+ Logs an error message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logError:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogError(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+
+/**
+ Logs a warning message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logWarning:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogWarning(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+
+/**
  Asynchronously logs a message to the testing environment.
  
  This variant of `SLLog` is for use by the application
@@ -47,6 +80,38 @@ void SLLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
  */
 void SLLogAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
 
+/**
+ Asynchronously logs an error message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logError:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogErrorAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
+
+/**
+ Asynchronously logs a warning message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logWarning:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogWarningAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
+
+/**
+ Asynchronously logs a debug message to the testing environment.
+ 
+ Functionally equivalent to `NSLog`, except for the output medium.
+ The message is output using `[[SLLogger sharedLogger] logDebug:]`.
+ 
+ @param format A format string (in the manner of `-[NSString stringWithFormat:]`).
+ @param ... (Optional) A comma-separated list of arguments to substitute into `format`.
+ */
+void SLLogDebugAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
 
 /**
  The shared `SLLogger` used by Subliminal to log test progress. It may also be
@@ -109,6 +174,15 @@ void SLLogAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
  @return A custom serial dispatch queue on which to serialize log messages.
  */
 - (dispatch_queue_t)loggingQueue;
+
+/**
+ Whether or not the current queue is the `loggingQueue`.
+ 
+ To avoid deadlocks, use this method to check if you're on the `loggingQueue` before `dispatch_sync`ing a block to it.
+ 
+ @return Whether or not the current queue is the `loggingQueue`.
+ */
+- (BOOL)currentQueueIsLoggingQueue;
 
 /**
  Logs a message.
@@ -226,6 +300,15 @@ void SLLogAsync(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
  */
 - (void)logTestingFinishWithNumTestsExecuted:(NSUInteger)numTestsExecuted
                               numTestsFailed:(NSUInteger)numTestsFailed;
+
+/**
+ Logs an exception that was not caught by the tests or application.
+
+ This method is to be called from the test controller's uncaught exception handler.
+
+ @param exception The exception to be logged.
+ */
+- (void)logUncaughtException:(NSException *)exception;
 
 @end
 

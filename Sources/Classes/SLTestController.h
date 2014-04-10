@@ -99,8 +99,19 @@
  */
 - (void)runTests:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock;
 
-@end
+/**
+ Runs the specified tests just like any of the runTests: methods, however they are run
+ synchronously so dispatching them to another queue is up to the caller.
+ 
+ @param finishTesting   A boolean that, when true, signals the end of the test run and terminates the
+                        Subliminal session.
+ 
+ */
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock;
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting;
+- (void)runTestsSync:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting;
 
+@end
 
 /**
  The methods in the `SLTestController (DebugSettings)` category may be useful 

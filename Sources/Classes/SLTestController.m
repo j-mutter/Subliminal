@@ -29,6 +29,7 @@
 #import "SLTerminal.h"
 #import "SLElement.h"
 #import "SLAlert.h"
+#import "SLDevice.h"
 
 #import "SLStringUtilities.h"
 
@@ -44,45 +45,25 @@ static const NSTimeInterval kDefaultTimeout = 5.0;
 
 @interface SLTestController () <UIAlertViewDelegate>
 
-/// The currently-running test, if any.
-@property (nonatomic, readonly) SLTest *currentTest;
-
 @end
 
 
 /// Uncaught exceptions are logged to Subliminal for visibility.
 static void SLUncaughtExceptionHandler(NSException *exception)
 {
-    NSMutableString *exceptionMessage = [[NSMutableString alloc] initWithString:@"Uncaught exception occurred"];
-    SLTest *currentTest = [[SLTestController sharedTestController] currentTest];
-    if (currentTest) {
-        NSString *currentTestName = NSStringFromClass([currentTest class]);
-        NSString *currentTestCase = currentTest.currentTestCase;
-        if (currentTestCase) {
-            [exceptionMessage appendFormat:@" during test case \"-[%@ %@]\"", currentTestName, currentTestCase];
-        } else {
-            [exceptionMessage appendFormat:@" during test \"%@\"", currentTestName];
-        }
-    }
-    [exceptionMessage appendFormat:@": ***%@***", [exception name]];
-    NSString *exceptionReason = [exception reason];
-    if ([exceptionReason length]) {
-        [exceptionMessage appendFormat:@" for reason: %@", exceptionReason];
-    }
-    
     if ([NSThread isMainThread]) {
         // We need to wait for UIAutomation, but we can't block the main thread,
         // so we spin the run loop instead.
         __block BOOL hasLogged = NO;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-            SLLog(@"%@", exceptionMessage);
+            [[SLLogger sharedLogger] logUncaughtException:exception];
             hasLogged = YES;
         });
         while (!hasLogged) {
             [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
         }
     } else {
-        SLLog(@"%@", exceptionMessage);
+        [[SLLogger sharedLogger] logUncaughtException:exception];
     }
 
     if (appsUncaughtExceptionHandler) {
@@ -94,7 +75,7 @@ static void SLUncaughtExceptionHandler(NSException *exception)
 @implementation SLTestController {
     dispatch_queue_t _runQueue;
     unsigned int _runSeed;
-    BOOL _runningWithFocus, _runningWithPredeterminedSeed;
+    BOOL _runningWithFocus, _runningWithPredeterminedSeed, _skipTestSet;
     NSArray *_testsToRun;
     NSUInteger _numTestsExecuted, _numTestsFailed;
     void(^_completionBlock)(void);
@@ -161,7 +142,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     return ( random() / ( RAND_MAX + 1.0 ) ) * upperBound;
 }
 
-+ (NSArray *)testsToRun:(id)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus {
++ (NSArray *)testsToRun:(id)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus skipTests:(BOOL *)skipTests {
     NSMutableArray *testsToRun = nil;
     if ([tests isKindOfClass:[NSSet class]]) {
         testsToRun = [NSMutableArray arrayWithArray:[tests allObjects]];
@@ -192,7 +173,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
         srandom(seedUsed);
         // http://en.wikipedia.org/wiki/Fisher–Yates_shuffle
         for (NSUInteger i = [testsToRun count] - 1; i > 0; --i) {
-            [testsToRun exchangeObjectAtIndex:i withObjectAtIndex:random_uniform(i + 1)];
+            [testsToRun exchangeObjectAtIndex:i withObjectAtIndex:random_uniform((u_int32_t)(i + 1))];
         }
     }
     // now filter the array: only run tests that are concrete...
@@ -203,12 +184,27 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
     // ...and that are focused (if any remaining are focused)
     NSMutableArray *focusedTests = [testsToRun mutableCopy];
-    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
-    BOOL runningWithFocus = ([focusedTests count] > 0);
+    NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"TESTS"];
+    // ...if tests to focus are defined in the TESTS environment variable, use those. Otherwise, filter by "focus_" prefix
+    if ([envTests length] > 0) {
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocusedWithEnvVar == YES"]];
+    } else {
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
+    }
+    
+    BOOL runningWithFocus = NO;
+    if ([focusedTests count] > 0) {
+        runningWithFocus = YES;
+    } else if ([envTests length] > 0 && skipTests) {
+        runningWithFocus = YES;
+        *skipTests = runningWithFocus;
+    }
     if (runningWithFocus) {
         testsToRun = focusedTests;
     }
-    if (withFocus) *withFocus = runningWithFocus;
+    if (withFocus) {
+        *withFocus = runningWithFocus;
+    }
 
     return [testsToRun copy];
 }
@@ -242,6 +238,29 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     }
 }
 
+// In certain environments like Travis, `instruments` intermittently hangs.
+// When this occurs, it seems that the simulator is also in an inconsistent state
+// such that it can't be rotated, web pages don't load, etc.
+// If we detect that we are running in such an environment,
+// abort so that the test runner can relaunch.
+//
+// Don't try to do this when unit testing; it shouldn't be necessary
+// and communication with UIAutomation is disabled anyway.
+#if TARGET_IPHONE_SIMULATOR
+- (void)abortIfSimulatorIsInconsistent {
+    if ([SLTestController isBeingUnitTested]) return;
+    
+    const UIDeviceOrientation testOrientation = UIDeviceOrientationPortrait;
+
+    [[SLDevice currentDevice] setOrientation:testOrientation];
+    BOOL simulatorIsConsistent = ([UIDevice currentDevice].orientation == testOrientation);
+    if (!simulatorIsConsistent) {
+        [[SLLogger sharedLogger] logError:@"Please relaunch the tests: the simulator is in an inconsistent state. This run will now abort."];
+        abort();
+    }
+}
+#endif
+
 // Having the Accessibility Inspector enabled while tests are running
 // can cause problems with touch handling and/or prevent UIAutomation's alert
 // handler from being called.
@@ -254,7 +273,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
     // We detect if the Inspector is enabled by examining the simulator's Accessibility preferences
     // 1. get into the simulator's app support directory by fetching the sandboxed Library's path
-    NSString *userDirectoryPath = [[[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject] path];
+    NSString *userDirectoryPath = [(NSURL *)[[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject] path];
 
     // 2. get out of our application directory, back to the root support directory for this system version
     NSString *plistRootPath = [userDirectoryPath substringToIndex:([userDirectoryPath rangeOfString:@"Applications"].location)];
@@ -276,6 +295,10 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     NSSetUncaughtExceptionHandler(&SLUncaughtExceptionHandler);
 
     SLLog(@"Tests are starting up... ");
+
+#if TARGET_IPHONE_SIMULATOR
+    [self abortIfSimulatorIsInconsistent];
+#endif
 
     // we use a local element resolution timeout
     // and suppress UIAutomation's timeout, to better control the timing of the tests
@@ -320,49 +343,68 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
 - (void)runTests:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock {
     dispatch_async(_runQueue, ^{
-        _completionBlock = completionBlock;
-
-        _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
-        _runSeed = seed;
-        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
-        if (![_testsToRun count]) {
-            SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
-            [self _finishTesting];
-            return;
-        }
-
-        [self _beginTesting];
-
-        for (Class testClass in _testsToRun) {
-            @autoreleasepool {
-                _currentTest = (SLTest *)[[testClass alloc] init];
-
-                NSString *testName = NSStringFromClass(testClass);
-                [[SLLogger sharedLogger] logTestStart:testName];
-
-                NSUInteger numCasesExecuted = 0, numCasesFailed = 0, numCasesFailedUnexpectedly = 0;
-
-                BOOL testDidFinish = [_currentTest runAndReportNumExecuted:&numCasesExecuted
-                                                                    failed:&numCasesFailed
-                                                        failedUnexpectedly:&numCasesFailedUnexpectedly];
-                if (testDidFinish) {
-                    [[SLLogger sharedLogger] logTestFinish:testName
-                                      withNumCasesExecuted:numCasesExecuted
-                                            numCasesFailed:numCasesFailed
-                                numCasesFailedUnexpectedly:numCasesFailedUnexpectedly];
-                    if (numCasesFailed > 0) _numTestsFailed++;
-                } else {
-                    [[SLLogger sharedLogger] logTestAbort:testName];
-                    _numTestsFailed++;
-                }
-                _numTestsExecuted++;
-
-                _currentTest = nil;
-            }
-        }
-
-        [self _finishTesting];
+        [self runTestsSync:tests usingSeed:seed withCompletionBlock:completionBlock finishTesting:YES];
     });
+}
+
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock
+{
+    [self runTestsSync:tests withCompletionBlock:completionBlock finishTesting:NO];
+}
+
+- (void)runTestsSync:(id)tests withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting
+{
+    [self runTestsSync:tests usingSeed:SLTestControllerRandomSeed withCompletionBlock:nil finishTesting:finishTesting];
+}
+
+- (void)runTestsSync:(id)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock finishTesting:(BOOL)finishTesting
+{
+    _completionBlock = completionBlock;
+    
+    _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
+    _runSeed = seed;
+    _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus skipTests:&_skipTestSet];
+    if (![_testsToRun count]) {
+        SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
+        if (_skipTestSet == NO || finishTesting) {
+            [self _finishTesting];
+        }
+        return;
+    }
+    
+    [self _beginTesting];
+    
+    for (Class testClass in _testsToRun) {
+        @autoreleasepool {
+            SLTest *test = (SLTest *)[[testClass alloc] init];
+            
+            NSString *testName = NSStringFromClass(testClass);
+            [[SLLogger sharedLogger] logTestStart:testName];
+            
+            NSUInteger numCasesExecuted = 0, numCasesFailed = 0, numCasesFailedUnexpectedly = 0;
+            
+            BOOL testDidFinish = [test runAndReportNumExecuted:&numCasesExecuted
+                                                                failed:&numCasesFailed
+                                                    failedUnexpectedly:&numCasesFailedUnexpectedly];
+            if (testDidFinish) {
+                [[SLLogger sharedLogger] logTestFinish:testName
+                                  withNumCasesExecuted:numCasesExecuted
+                                        numCasesFailed:numCasesFailed
+                            numCasesFailedUnexpectedly:numCasesFailedUnexpectedly];
+                if (numCasesFailed > 0) _numTestsFailed++;
+            } else {
+                [[SLLogger sharedLogger] logTestAbort:testName];
+                _numTestsFailed++;
+            }
+            _numTestsExecuted++;
+            
+            test = nil;
+        }
+    }
+    
+    if (finishTesting) {
+        [self _finishTesting];
+    }
 }
 
 - (void)_finishTesting {
