@@ -21,8 +21,6 @@
 //
 
 #import "SLLogger.h"
-
-#import "SLLogger.h"
 #import "SLTerminal.h"
 #import "SLStringUtilities.h"
 
@@ -37,11 +35,31 @@ NSString *const SLLoggerUnknownCallSite           = @"Unknown location";
  */
 static const void *const kLoggingQueueIdentifier = &kLoggingQueueIdentifier;
 
-
 void SLLog(NSString *format, ...) {
     va_list args;
     va_start(args, format);
     [[SLLogger sharedLogger] logMessage:[[NSString alloc] initWithFormat:format arguments:args]];
+    va_end(args);
+}
+
+void SLLogDebug(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    [[SLLogger sharedLogger] logDebug:[[NSString alloc] initWithFormat:format arguments:args]];
+    va_end(args);
+}
+
+void SLLogError(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    [[SLLogger sharedLogger] logError:[[NSString alloc] initWithFormat:format arguments:args]];
+    va_end(args);
+}
+
+void SLLogWarning(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    [[SLLogger sharedLogger] logWarning:[[NSString alloc] initWithFormat:format arguments:args]];
     va_end(args);
 }
 
@@ -50,9 +68,42 @@ void SLLogAsync(NSString *format, ...) {
     va_start(args, format);
     NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
-
+    
     dispatch_async([[SLLogger sharedLogger] loggingQueue], ^{
         [[SLLogger sharedLogger] logMessage:message];
+    });
+}
+
+void SLLogErrorAsync(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    dispatch_async([[SLLogger sharedLogger] loggingQueue], ^{
+        [[SLLogger sharedLogger] logError:message];
+    });
+}
+
+void SLLogWarningAsync(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    dispatch_async([[SLLogger sharedLogger] loggingQueue], ^{
+        [[SLLogger sharedLogger] logWarning:message];
+    });
+}
+
+void SLLogDebugAsync(NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    dispatch_async([[SLLogger sharedLogger] loggingQueue], ^{
+        [[SLLogger sharedLogger] logDebug:message];
     });
 }
 
