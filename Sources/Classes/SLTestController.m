@@ -74,7 +74,7 @@ static void SLUncaughtExceptionHandler(NSException *exception)
 @implementation SLTestController {
     dispatch_queue_t _runQueue;
     unsigned int _runSeed;
-    BOOL _runningWithFocus, _runningWithPredeterminedSeed;
+    BOOL _runningWithFocus, _runningWithPredeterminedSeed, _skipTestSet;
     NSArray *_testsToRun;
     NSUInteger _numTestsExecuted, _numTestsFailed;
     void(^_completionBlock)(void);
@@ -141,7 +141,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     return ( random() / ( RAND_MAX + 1.0 ) ) * upperBound;
 }
 
-+ (NSArray *)testsToRun:(NSSet *)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus {
++ (NSArray *)testsToRun:(NSSet *)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus skipTests:(BOOL *)skipTests {
     NSMutableArray *testsToRun = [[NSMutableArray alloc] initWithCapacity:[tests count]];
 
     // identify run groups
@@ -198,12 +198,28 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
     // ...and that are focused (if any remaining are focused)
     NSMutableArray *focusedTests = [testsToRun mutableCopy];
-    [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
-    BOOL runningWithFocus = ([focusedTests count] > 0);
+    NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"FOCUS"];
+    // ...if tests to focus are defined in the FOCUS environment variable, use those. Otherwise, filter by "focus_" prefix
+    if ([envTests length] > 0) {
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocusedWithEnvVar == YES"]];
+    } else {
+        [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
+    }
+
+    BOOL runningWithFocus = NO;
+    if ([focusedTests count] > 0) {
+        runningWithFocus = YES;
+    } else if ([envTests length] > 0 && skipTests) {
+        runningWithFocus = YES;
+        *skipTests = runningWithFocus;
+    }
+
     if (runningWithFocus) {
         testsToRun = focusedTests;
     }
-    if (withFocus) *withFocus = runningWithFocus;
+    if (withFocus) {
+        *withFocus = runningWithFocus;
+    }
 
     return [testsToRun copy];
 }
@@ -218,6 +234,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
         _runSeed = SLTestControllerRandomSeed;
         _defaultTimeout = kDefaultTimeout;
         _startTestingSemaphore = dispatch_semaphore_create(0);
+        _performInconsistentStateCheck = YES;
     }
     return self;
 }
@@ -248,6 +265,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 #if TARGET_IPHONE_SIMULATOR
 - (void)abortIfSimulatorIsInconsistent {
     if ([SLTestController isBeingUnitTested]) return;
+    if (!self.performInconsistentStateCheck) return;
     
     const UIDeviceOrientation testOrientation = UIDeviceOrientationPortrait;
 
@@ -346,10 +364,12 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
         _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
         _runSeed = seed;
-        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
+        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus skipTests:&_skipTestSet];
         if (![_testsToRun count]) {
             SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
-            [self _finishTesting];
+            if (_skipTestSet == NO) {
+                [self _finishTesting];
+            }
             return;
         }
 
