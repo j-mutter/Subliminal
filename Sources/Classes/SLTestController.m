@@ -74,7 +74,7 @@ static void SLUncaughtExceptionHandler(NSException *exception)
 @implementation SLTestController {
     dispatch_queue_t _runQueue;
     unsigned int _runSeed;
-    BOOL _runningWithFocus, _runningWithPredeterminedSeed, _skipTestSet;
+    BOOL _runningWithFocus, _runningWithPredeterminedSeed;
     NSArray *_testsToRun;
     NSUInteger _numTestsExecuted, _numTestsFailed;
     void(^_completionBlock)(void);
@@ -141,7 +141,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     return ( random() / ( RAND_MAX + 1.0 ) ) * upperBound;
 }
 
-+ (NSArray *)testsToRun:(NSSet *)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus skipTests:(BOOL *)skipTests {
++ (NSArray *)testsToRun:(NSSet *)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus {
     NSMutableArray *testsToRun = [[NSMutableArray alloc] initWithCapacity:[tests count]];
 
     // identify run groups
@@ -196,23 +196,17 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     // ...that support the current platform...
     [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"supportsCurrentPlatform == YES"]];
 
-    // ...and that are focused (if any remaining are focused)
+    // ...and that are focused (if any remaining are focused)...
     NSMutableArray *focusedTests = [testsToRun mutableCopy];
     NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"FOCUS"];
-    // ...if tests to focus are defined in the FOCUS environment variable, use those. Otherwise, filter by "focus_" prefix
+    // ...if tests to focus are listed in the FOCUS environment variable, use those. Otherwise, filter by "focus_" prefix
     if ([envTests length] > 0) {
         [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocusedWithEnvVar == YES"]];
     } else {
         [focusedTests filterUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == YES"]];
     }
 
-    BOOL runningWithFocus = NO;
-    if ([focusedTests count] > 0) {
-        runningWithFocus = YES;
-    } else if ([envTests length] > 0 && skipTests) {
-        runningWithFocus = YES;
-        *skipTests = runningWithFocus;
-    }
+    BOOL runningWithFocus = ([focusedTests count] > 0);
 
     if (runningWithFocus) {
         testsToRun = focusedTests;
@@ -364,12 +358,9 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 
         _runningWithPredeterminedSeed = (seed != SLTestControllerRandomSeed);
         _runSeed = seed;
-        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus skipTests:&_skipTestSet];
+        _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
         if (![_testsToRun count]) {
             SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
-            if (_skipTestSet == NO) {
-                [self _finishTesting];
-            }
             return;
         }
 
