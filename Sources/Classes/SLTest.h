@@ -153,8 +153,8 @@
 
 /**
  Returns YES if the test has at least one test case which is focused
- using the `FOCUS` environment variable on the tested application's Integration Tests
- scheme and which can run on the current platform.
+ using an environment variable named `FOCUS` on the tested application's Integration
+ Tests scheme and which can run on the current platform.
  
  When a test is run, if any of its test cases are focused, only those test cases will run.
  This may be useful when writing or debugging tests.
