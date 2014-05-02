@@ -226,7 +226,7 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
 
         // if any test cases are specified in the FOCUS envvar
         NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"FOCUS"];
-        NSArray *envTestsArray = [envTests componentsSeparatedByString:@","];
+        NSArray *envTestsArray = [envTests componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@", \t"]];
         envVarFocusedTestCases = [testCases filteredSetUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *testCase, NSDictionary *bindings) {
             return [envTestsArray containsObject:testCase];
         }]];
