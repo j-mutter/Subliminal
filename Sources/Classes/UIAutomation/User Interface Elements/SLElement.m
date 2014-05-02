@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -324,6 +324,12 @@ UIAccessibilityTraits SLUIAccessibilityTraitAny = 0;
  they will be visible, and must depend on UIAutomation to confirm visibility.
  */
 - (BOOL)isVisible {
+    // Temporarily use UIAutomation to check visibility if the device is in a non-portrait orientation
+    // to work around https://github.com/inkling/Subliminal/issues/135
+    if ([UIDevice currentDevice].orientation != UIDeviceOrientationPortrait) {
+        return [super isVisible];
+    }
+
     __block BOOL isVisible = NO;
     __block BOOL matchedObjectOfUnknownClass = NO;
     // isVisible evaluates the current state, no waiting to resolve the element
@@ -333,7 +339,7 @@ UIAccessibilityTraits SLUIAccessibilityTraitAny = 0;
     } timeout:0.0];
 
     if (isVisible && matchedObjectOfUnknownClass) {
-        isVisible = [[self waitUntilTappable:NO thenSendMessage:@"isVisible()"] boolValue];
+        isVisible = [super isVisible];
     }
 
     return isVisible;

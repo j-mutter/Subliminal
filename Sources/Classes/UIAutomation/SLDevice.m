@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -39,7 +39,18 @@
 }
 
 - (void)deactivateAppForDuration:(NSTimeInterval)duration {
+    UIDeviceOrientation currentOrientation = [UIDevice currentDevice].orientation;
+
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIATarget.localTarget().deactivateAppForDuration(%g)", duration];
+
+    // On iPads running iOS 5.1 and 7.1, `UIDevice` forgets its orientation after deactivation.
+    // This is not only unexpected but can mess with `-[SLElement isVisible]`.
+    // See https://github.com/inkling/Subliminal/pull/180#issuecomment-40891098
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) &&
+            ((kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_6_0) ||
+             (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_6_1))) {
+        [self setOrientation:currentOrientation];
+    }
 }
 
 #pragma mark - Device Rotation
@@ -60,8 +71,8 @@ NSString * SLUIADeviceOrientationFromUIDeviceOrientation(UIDeviceOrientation dev
 - (void)setOrientation:(UIDeviceOrientation)deviceOrientation
 {
     [[SLTerminal sharedTerminal] evalWithFormat:@"UIATarget.localTarget().setDeviceOrientation(%@)", SLUIADeviceOrientationFromUIDeviceOrientation(deviceOrientation)];
-    // Delay slightly to ensure that UIDevice registers the new orientation
-    [NSThread sleepForTimeInterval:0.3];
+    // Delay to ensure that the rotation completes and UIDevice registers the new orientation
+    [NSThread sleepForTimeInterval:1.0];
 }
 
 #pragma mark - Screenshots

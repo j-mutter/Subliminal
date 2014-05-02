@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -98,9 +98,9 @@
  will be executed on the main queue. The test controller will then signal 
  UIAutomation to finish executing commands.
  
- @param tests           The set of tests to run.
- @param seed            The seed to use to randomize the tests.
-                        If `SLTestControllerRandomSeed` is passed, the test controller will choose a seed.
+ @param tests The set of tests to run.
+ @param seed  The seed to use to randomize the tests.
+ If `SLTestControllerRandomSeed` is passed, the test controller will choose a seed.
  @param completionBlock An optional block to execute once testing has finished.
  */
 - (void)runTests:(NSSet *)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock;
@@ -114,8 +114,9 @@
  */
 @interface SLTestController (DebugSettings)
 
+#pragma mark - Debugging Tests
 /// -------------------------------------------
-/// @name Debugging tests
+/// @name Debugging Tests
 /// -------------------------------------------
 
 /**

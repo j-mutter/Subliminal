@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -225,6 +225,11 @@
                (testCase == @selector(testIsValidAndVisibleReturnsYESIfElementIsBothValidAndVisible)) ||
                (testCase == @selector(testIsInvalidOrInvisibleDoesNotThrowIfElementIsInvalid)) ||
                (testCase == @selector(testIsInvalidOrInvisibleReturnsYESIfElementIsInvalidOrInvisible))) {
+        nibName = @"SLElementVisibilityTestHidden";
+    } else if ((testCase == @selector(testViewIsVisibleInPortrait)) ||
+               (testCase == @selector(testViewIsVisibleInPortraitUpsideDown)) ||
+               (testCase == @selector(testViewIsVisibleInLandscapeLeft)) ||
+               (testCase == @selector(testViewIsVisibleInLandscapeRight))) {
         nibName = @"SLElementVisibilityTestHidden";
     }
     return nibName;

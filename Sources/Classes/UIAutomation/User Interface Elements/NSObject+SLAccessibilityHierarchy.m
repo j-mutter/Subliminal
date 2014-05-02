@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -375,6 +375,18 @@
 @implementation UITableViewCell (SLAccessibilityHierarchy)
 - (BOOL)classForcesPresenceOfMockingViewsInAccessibilityHierarchy {
     return YES;
+}
+@end
+
+
+// On iOS 6, collection view cells themselves appear in the accessibility hierarchy.
+// On iOS 7, mock cells (instances of `UICollectionViewCellAccessibilityElement`) appear in the hierarchy instead.
+@implementation UICollectionViewCell (SLAccessibilityHierarchy)
+- (BOOL)classForcesPresenceInAccessibilityHierarchy {
+    return kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_6_1;
+}
+- (BOOL)classForcesPresenceOfMockingViewsInAccessibilityHierarchy {
+    return kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_6_1;
 }
 @end
 

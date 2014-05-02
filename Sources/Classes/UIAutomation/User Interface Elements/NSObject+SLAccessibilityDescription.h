@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 
 /**
- The methods in the `NSObject (SLAccessibilityDescription)` allow developers 
+ The methods in the `NSObject (SLAccessibilityDescription)` category allow developers
  to examine the accessibility properties of objects within their application, 
  for use in making their application accessible to disabled users and to 
  Subliminal.
@@ -46,13 +46,14 @@
  If the receiver is a `UIView`, this also enumerates the subviews of the receiver.
 
  @warning This method describes all elements contained within the receiver,
- even if they [will not appear in the accessibility hierarchy](-willAppearInAccessibilityHierarchy).
- That is, the set of elements described by this method is a superset of those
- elements that will appear in the accessibility hierarchy. To log only those
- elements that will appear in the accessibility hierarchy, use `-[SLUIAElement logElementTree]`.
+ even if they will not appear in the accessibility hierarchy (see
+ `-[NSObject willAppearInAccessibilityHierarchy]`). That is, the set of
+ elements described by this method is a superset of those elements that will
+ appear in the accessibility hierarchy. To log only those elements that will
+ appear in the accessibility hierarchy, use `-[SLUIAElement logElementTree]`.
 
- @return A string that recursively describes the receiver and its accessibility children
- in terms of their accessibility properties.
+ @return A string that recursively describes the receiver and its accessibility
+ children in terms of their accessibility properties.
  */
 - (NSString *)slRecursiveAccessibilityDescription;
 

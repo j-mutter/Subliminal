@@ -5,9 +5,20 @@
 [![Build Status](https://travis-ci.org/inkling/Subliminal.svg?branch=master)](https://travis-ci.org/inkling/Subliminal)
 
 Subliminal is a framework for writing iOS integration tests. Subliminal provides 
-a familiar OCUnit/SenTest-like interface to Apple's UIAutomation framework, 
+a familiar OCUnit/XCTest-like interface to Apple's UIAutomation framework, 
 with tests written entirely in Objective-C. Subliminal also provides a powerful 
 mechanism for your tests to manipulate your application directly.
+
+[
+[Features](#features) &bull; 
+[Getting Started](#how-to-get-started) &bull; 
+[Requirements](#requirements) &bull; 
+[Usage](#usage) &bull; 
+[Continuous Integration](#continuous-integration) &bull; 
+[Contributing](#contributing) &bull; 
+[Contact](#contact) &bull; 
+[License](#copyright-and-license) 
+]
 
 Features
 --------
@@ -37,12 +48,11 @@ How to Get Started
 ------------------
 
 * [Download Subliminal](https://github.com/inkling/Subliminal/zipball/master) 
-and try out the included example app. Instructions for running the example app are [here](#running-the-example-app)
-* Install Subliminal and write your first test in just 10 minutes (screencast [here](https://vimeo.com/67771344))
-* Read the wiki for an [installation walkthrough](https://github.com/inkling/Subliminal/wiki#installing-subliminal) or for other [guides to using Subliminal](https://github.com/inkling/Subliminal/wiki#documentation)
+and [try out the included example app](#running-the-example-app)
+* See an [installation walkthrough and screencast](https://github.com/inkling/Subliminal/wiki#installing-subliminal)
+* Check out Subliminal's [API documentation](http://inkling.github.io/Subliminal/Documentation/)
+or the [guides to using Subliminal on the Wiki](https://github.com/inkling/Subliminal/wiki#documentation)
 * Read a [comparison of Subliminal to other integration test frameworks](#comparison-to-other-integration-test-frameworks)
-* Get support from [@subliminaltest](https://twitter.com/subliminaltest) and on 
-[Stack Overflow](http://stackoverflow.com/questions/tagged/subliminal)
 
 Running the Example App
 -----------------------
@@ -65,21 +75,18 @@ Requirements
 ------------
 
 Subliminal supports projects built using Xcode 5.1 and iOS 7.x SDKs,
-and deployment targets running iOS 5.1 through 7.1.
+and deployment targets running iOS 6.1 through 7.1.
 
-To test against the iOS 5.1 Simulator, you will need to run Xcode 5.1 on OS X 10.8,
-and manually add the 5.1 Simulator to Xcode 5.1, as described
-[here](http://stackoverflow.com/a/22494536/495611).
-
-**NOTE**: The forthcoming Subliminal 1.1 will be the last version of Subliminal
-to officially support iOS 5.1, because Subliminal's CI infrastructure has been
-upgraded to OS X 10.9 and so no longer supports the 5.1 Simulator. (Subliminal 1.1
-will be specially tested against a local machine running 10.8.)
+For iOS 5.1 support, use Subliminal 1.1.0 (found in the
+[Releases](https://github.com/inkling/Subliminal/releases/) section or on
+[CocoaPods](http://cocoapods.org/)). To test in the iOS 5.1 Simulator, you will
+need to run OS X 10.8 and manually add the iOS 5.1 Simulator to Xcode 5.1,
+as described [here](http://stackoverflow.com/a/22494536/495611).
 
 Usage
 -----
 
-Subliminal is designed to be instantly familiar to users of OCUnit/SenTest. 
+Subliminal is designed to be instantly familiar to users of OCUnit/XCTest. 
 In Subliminal, subclasses of `SLTest` define tests as methods beginning with `test`. 
 At run-time, Subliminal discovers and runs these tests. 
 
@@ -129,7 +136,7 @@ For example scripts and guides to integrate with popular CI services like Travis
 Comparison to Other Integration Test Frameworks
 -----------------------------------------------
 
-* 	How is Subliminal different from other integration test frameworks?
+* 	**How is Subliminal different from other integration test frameworks?**
 
 	Most other integration test frameworks fall into two categories: entirely 
 	Objective-C based, or entirely UIAutomation-based.
@@ -151,7 +158,7 @@ Comparison to Other Integration Test Frameworks
 	Only Subliminal combines the convenience of writing tests in Objective-C 
 	with the power of UIAutomation.
 
-* 	How is Subliminal different than UIAutomation?
+* 	**How is Subliminal different than UIAutomation?**
 
 	Besides the limitations of UIAutomation described above, it is extremely 
 	difficult to write UIAutomation tests. This is because UIAutomation requires 
@@ -159,7 +166,7 @@ Comparison to Other Integration Test Frameworks
 	["element hierarchy"](https://developer.apple.com/library/ios/#documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UsingtheAutomationInstrument/UsingtheAutomationInstrument.html#//apple_ref/doc/uid/TP40004652-CH20-SW88), like
 
 	```js
-	UIATarget.localTarget().frontMostApp().mainWindow().tableViews()[0].cells()[0].
+	var cell = UIATarget.localTarget().frontMostApp().mainWindow().tableViews()[0].cells()["foo"];
 	```
 
 	These references are not only difficult to read but are also difficult to write.
@@ -172,9 +179,21 @@ Comparison to Other Integration Test Frameworks
 	difficult to modify thereafter.
 
 	Subliminal allows developers to identify elements by their properties, 
-	independent of their position in the element hierarchy. Subliminal then 
-	generates the full reference for the developer. Subliminal abstracts away 
-	the complexity of UIAutomation scripts to let developers focus on writing tests.
+	independent of their position in the element hierarchy:
+
+    ```objc
+    SLElement *fooCell = [SLElement elementWithAccessibilityLabel:@"foo"];
+    ```
+
+    Subliminal abstracts away the complexity of UIAutomation scripts to let developers focus on writing tests.
+
+    Subliminal also fixes several bugs in UIAutomation and the `instruments` CLI tool,
+    such as `instruments`' lack for [true device support](https://github.com/inkling/Subliminal/pull/75).
+    And, last but not least, Subliminal rewrites `instruments`' output using human-friendly formatting
+    and ANSI colors:
+
+    ![](http://inkling.github.io/Subliminal/readme-images/PrettyCI.png)
+
 
 Contributing
 ------------
@@ -198,13 +217,19 @@ and Subliminal's [growing list of contributors](https://github.com/inkling/Subli
 Contact
 -------
 
-Follow Subliminal ([@subliminaltest](https://twitter.com/subliminaltest)) and 
-Jeff Wear ([@wear_here](https://twitter.com/wear_here/)) on Twitter.
+* If you **need help**, use [Stack Overflow](http://stackoverflow.com/questions/tagged/subliminal). (Tag 'subliminal'.)
+* If you'd like to **ask a general question**, use [Stack Overflow](http://stackoverflow.com/questions/tagged/subliminal).
+* If you've **found a bug**, [open an issue](https://github.com/inkling/Subliminal/issues/new).
+* If you **have a feature request**, [open an issue](https://github.com/inkling/Subliminal/issues/new).
+* If you'd **like to contribute** (awesome!), see [the contributing guidelines](https://github.com/inkling/Subliminal/blob/master/CONTRIBUTING.md) to get started.
+
+You can also follow Subliminal ([@subliminaltest](https://twitter.com/subliminaltest))
+on Twitter.
 
 Copyright and License
 ---------------------
 
-Copyright 2013 Inkling Systems, Inc.
+Copyright 2013-2014 Inkling Systems, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

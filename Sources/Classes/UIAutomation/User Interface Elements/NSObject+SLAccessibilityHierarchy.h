@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -54,9 +54,10 @@
  by a combination of the receiver's accessibility information and its location 
  in the view hierarchy.
  
- See the method's implementation for specifics, or use the Accessibility Inspector: 
- if it can read an element's information, some underlying object is present 
- in the hierarchy.
+ See the method's implementation for specifics, or use the
+ [Accessibility Inspector](https://developer.apple.com/library/ios/technotes/TestingAccessibilityOfiOSApps/TestAccessibilityiniOSSimulatorwithAccessibilityInspector/TestAccessibilityiniOSSimulatorwithAccessibilityInspector.html#//apple_ref/doc/uid/TP40012619-CH4):
+ if it can read an element's information, some underlying object is present
+ in the accessibility hierarchy.
 
  @return YES if the receiver will appear in the accessibility hierarchy,
  otherwise NO.
@@ -170,9 +171,9 @@
  will appear in an accessibility hierarchy.
 
  Experimentation reveals that a mock view will appear in the accessibility hierarchy
- if the real object will appear in [any accessibility hierarchy]
- (-willAppearInAccessibilityHierarchy) or is an instance of one of a [certain set
- of classes](-classForcesPresenceOfMockingViewsInAccessibilityHierarchy).
+ if the real object will appear in any accessibility hierarchy (see
+ `-[NSObject willAppearInAccessibilityHierarchy]`) or is an instance of one of a
+ [certain set of classes](-classForcesPresenceOfMockingViewsInAccessibilityHierarchy).
 
  @return YES if an object mocking the receiver will appear in an accessibility
  hierarchy, otherwise NO.

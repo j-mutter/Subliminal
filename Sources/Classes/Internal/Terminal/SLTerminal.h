@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@
  - If the value is of type `"string"`, `-eval:` will return an `NSString *` 
  that is equal to the value.
  - If the value is of type `"boolean"`, `-eval:` will return an `NSNumber *` whose
- -boolValue is equal to the value.
+ `-boolValue` is equal to the value.
  - If the value is of type `"number"`, `-eval:` will return an `NSNumber *` whose
  primitive value (using an accessor appropriate to the value's format) is equal 
  to the value.
@@ -109,6 +109,11 @@
  tests because tests don't use the terminal directly.
  */
 @interface SLTerminal (DebugSettings)
+
+#pragma mark - Debugging Subliminal
+/// -------------------------------------------
+/// @name Debugging Subliminal
+/// -------------------------------------------
 
 /**
  Determines whether the terminal will log scripts as it evaluates them.

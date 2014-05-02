@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@
 
 /**
  Determines if the specified object is visible on the screen.
+
+ @bug This method always returns `NO` if the device is in a non-portrait
+ orientation: https://github.com/inkling/Subliminal/issues/135 .
 
  @return YES if the receiver is visible within the accessibility hierarchy,
  NO otherwise.

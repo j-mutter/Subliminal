@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -88,6 +88,14 @@
     for (int i=0; i<orientationCount; i++) {
         [self rotateToAndCheckOrientation:orientations[i]];
     }
+}
+
+// Exercises a bug in iOS 5.1 and 7.1. See https://github.com/inkling/Subliminal/pull/180#issuecomment-40891098
+- (void)testThatDeviceOrientationPersistsThroughDeactivation {
+    UIDeviceOrientation currentOrientation = [UIDevice currentDevice].orientation;
+    [[SLDevice currentDevice] deactivateAppForDuration:3.0];
+    SLAssertTrue([UIDevice currentDevice].orientation == currentOrientation,
+                 @"The device orientation should not have changed.");
 }
 
 - (void)rotateToAndCheckOrientation:(UIDeviceOrientation)orientation

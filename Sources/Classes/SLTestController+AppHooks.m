@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -93,7 +93,9 @@ NSString *const SLAppActionTargetDoesNotExistException = @"SLAppActionTargetDoes
     // we can't actually enforce that id-type arguments/return values conform to NSCopying, but oh well
     NSMethodSignature *actionSignature = [target methodSignatureForSelector:action];
 
-    const char *actionReturnType = [actionSignature methodReturnType];
+    // Suppress a warning when Subliminal is built with assertions disabled
+    // (i.e. by Cocoapods, in Release: https://github.com/CocoaPods/Xcodeproj/pull/53 )
+    const char *__unused actionReturnType = [actionSignature methodReturnType];
     NSAssert(strcmp(actionReturnType, @encode(void)) == 0 ||
              strcmp(actionReturnType, @encode(id<NSCopying>)) == 0, @"The action must return a value of either type void or id<NSCopying>.");
 

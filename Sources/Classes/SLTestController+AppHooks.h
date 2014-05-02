@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -86,8 +86,8 @@
 
  @param target The object to which the action message will be sent.
  @param action The message which will be sent to the target.
-               It must take either no arguments, or one `id`-type value conforming to NSCopying.
-               It must return either nothing, or an id-type value conforming to NSCopying.
+ It must take either no arguments, or one `id`-type value conforming to NSCopying.
+ It must return either nothing, or an id-type value conforming to NSCopying.
  
  @see -deregisterTarget:
  */
@@ -130,7 +130,7 @@
  @return The result of the action, if any; otherwise `nil`.
  
  @exception SLAppActionTargetDoesNotExistException Thrown if, after several 
- seconds' wait, no target has been registered for `action`, or a registered target
+ seconds' wait, no target has been registered for _action_, or a registered target
  has fallen out of scope.
  */
 - (id)sendAction:(SEL)action;
@@ -151,7 +151,7 @@
  @return The result of the action, if any; otherwise nil.
 
  @exception SLAppActionTargetDoesNotExistException Thrown if, after several 
- seconds' wait, no target has been registered for `action`, or a registered target 
+ seconds' wait, no target has been registered for _action_, or a registered target
  has fallen out of scope.
  */
 - (id)sendAction:(SEL)action withObject:(id<NSCopying>)object;

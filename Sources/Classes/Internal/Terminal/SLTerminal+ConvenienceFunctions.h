@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@
     NSString *result = [[SLTerminal sharedTerminal] evalFunctionWithName:@"SLAddTwoNumbers"
                                                                 withArgs:@[ @"5", @"7" ]];
  
- After evaluation, `result` would contain @"12".
+ After evaluation, `result` would contain `@"12"`.
 
  @param name The name of a function previously added to the terminal's namespace.
  @param args The arguments to the function, as strings.

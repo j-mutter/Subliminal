@@ -5,7 +5,7 @@
 //  For details and documentation:
 //  http://github.com/inkling/Subliminal
 //
-//  Copyright 2013 Inkling Systems, Inc.
+//  Copyright 2013-2014 Inkling Systems, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -47,20 +47,21 @@
  By sorting prior to filtering, the relative order of tests is maintained 
  regardless of focus.
 
- @param tests       The set of `SLTest` subclasses to process.
+ @param tests The set of `SLTest` subclasses to process.
 
- @param seed        The seed to use to randomize the test order. If this is null, or points to a value of
-                    `SLTestControllerRandomSeed`, the test controller will choose a seed.
-                    If this is non-null, upon return, it will be set to the seed that was used to randomize 
-                    the order (whether chosen by the test controller, or specified by the client).
+ @param seed The seed to use to randomize the test order. If this is null,
+ or points to a value of `SLTestControllerRandomSeed`, the test controller will
+ choose a seed. If this is non-`NULL`, upon return, it will be set to the seed that
+ was used to randomize the order (whether chosen by the test controller, or specified
+ by the client).
  
- @param withFocus   If this is non-`NULL`, upon return, it will be set to `YES`
-                    if any of the tests [are focused](+[SLTest isFocused]), `NO` otherwise.
+ @param withFocus If this is non-`NULL`, upon return, it will be set to `YES`
+ if any of the tests [are focused](+[SLTest isFocused]), `NO` otherwise.
 
- @param skipTests   If this is non-`NULL`, upon return, it will be set to `YES`, indicating that no tests are focused
-                    and no tests from the test set should be run.
+ @param skipTests If this is non-`NULL`, upon return, it will be set to `YES`,
+ indicating that no tests are focused and no tests from the test set should be run.
 
- @return            A filtered and ordered array of tests to run.
+ @return A filtered and ordered array of tests to run.
  */
 + (NSArray *)testsToRun:(NSSet *)tests usingSeed:(inout unsigned int *)seed withFocus:(BOOL *)withFocus skipTests:(BOOL *)skipTests;
 
