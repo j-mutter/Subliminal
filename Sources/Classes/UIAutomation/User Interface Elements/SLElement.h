@@ -75,10 +75,10 @@
 
 /**
  Creates and returns an element that matches objects in the accessibility hierarchy
- with the specified accessibility label, and accessibility identifier.
+ with the specified accessibility label and accessibility identifier.
  
  See the [UIAccessibility Protocol Reference](https://developer.apple.com/library/ios/documentation/uikit/reference/UIAccessibility_Protocol/Introduction/Introduction.html)
- for guidance in determining appropriate accessibility labels, and identifiers.
+ for guidance in determining appropriate accessibility labels and identifiers.
  
  @param label A label that identifies a matching object.
  If this is `nil`, the element does not restrict matches by label.
