@@ -190,13 +190,7 @@ u_int32_t random_uniform(u_int32_t upperBound) {
         [testsToRun addObjectsFromArray:group];
     }
 
-    // now filter the tests to run: only run tests that are concrete...
-    [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"isAbstract == NO"]];
-
-    // ...that support the current platform...
-    [testsToRun filterUsingPredicate:[NSPredicate predicateWithFormat:@"supportsCurrentPlatform == YES"]];
-
-    // ...and that are focused (if any remaining are focused)...
+    // now filter the tests to run to those focused, if any...
     NSMutableArray *focusedTests = [testsToRun mutableCopy];
     NSString *envTests = [[[NSProcessInfo processInfo] environment] objectForKey:@"FOCUS"];
     // ...if tests to focus are listed in the FOCUS environment variable, use those. Otherwise, filter by "focus_" prefix
@@ -211,9 +205,17 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     if (runningWithFocus) {
         testsToRun = focusedTests;
     }
-    if (withFocus) {
-        *withFocus = runningWithFocus;
-    }
+
+    if (withFocus) *withFocus = runningWithFocus;
+    
+    [testsToRun filterUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:@[
+        // ...then, only run tests that are concrete...
+        [NSPredicate predicateWithFormat:@"isAbstract == NO"],
+        // ...that support the current platform...
+        [NSPredicate predicateWithFormat:@"supportsCurrentPlatform == YES"],
+        // ...and that support the current environment.
+        [NSPredicate predicateWithFormat:@"supportsCurrentEnvironment == YES"]
+    ]]];
 
     return [testsToRun copy];
 }
@@ -342,6 +344,10 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     if (_runningWithFocus) {
         SLLog(@"Focusing on test cases in specific tests: %@.", [_testsToRun componentsJoinedByString:@","]);
     }
+    NSString *tags = [[[[NSProcessInfo processInfo] environment][@"SL_TAGS"] componentsSeparatedByString:@","] componentsJoinedByString:@", "];
+    if (tags) {
+        SLLog(@"Running test cases described by tags: %@.", tags);
+    }
 
     [self warnIfAccessibilityInspectorIsEnabled];
 
@@ -353,6 +359,9 @@ u_int32_t random_uniform(u_int32_t upperBound) {
 }
 
 - (void)runTests:(NSSet *)tests usingSeed:(unsigned int)seed withCompletionBlock:(void (^)())completionBlock {
+    // have to check this outside of the block below, wherein it will be used
+    static const char *const kMethodDescription = __PRETTY_FUNCTION__;
+    
     dispatch_async(_runQueue, ^{
         _completionBlock = completionBlock;
 
@@ -360,7 +369,14 @@ u_int32_t random_uniform(u_int32_t upperBound) {
         _runSeed = seed;
         _testsToRun = [[self class] testsToRun:tests usingSeed:&_runSeed withFocus:&_runningWithFocus];
         if (![_testsToRun count]) {
-            SLLog(@"%@%@%@", @"There are no tests to run", (_runningWithFocus) ? @": no tests are focused" : @"", @".");
+            NSMutableString *noTestsToRunWarning = [@"There are no tests to run: " mutableCopy];
+            if ([tests count]) {
+                [noTestsToRunWarning appendFormat:@"none of the tests %@ meet the criteria to be run. See `%@`'s documentation.",
+                                                 (_runningWithFocus) ? @"focused" : @"passed", @(kMethodDescription)];
+            } else {
+                [noTestsToRunWarning appendString:@"no tests were passed."];
+            }
+            [[SLLogger sharedLogger] logWarning:noTestsToRunWarning];
             [self _finishTesting];
             return;
         }
@@ -410,6 +426,8 @@ u_int32_t random_uniform(u_int32_t upperBound) {
     if (_runningWithFocus) {
         [[SLLogger sharedLogger] logWarning:@"This was a focused run. Fewer test cases may have run than normal."];
     }
+    // don't show a warning about `SL_TAGS` being set
+    // because tagging is intentional and allowed, even in CI environments
 
     if (_completionBlock) dispatch_sync(dispatch_get_main_queue(), _completionBlock);
 

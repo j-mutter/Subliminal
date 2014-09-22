@@ -35,14 +35,22 @@
 // call site information to exceptions.
 static NSString *const SLTestExceptionNamePrefix       = @"SLTest";
 
-NSString *const SLTestAssertionFailedException  = @"SLTestCaseAssertionFailedException";
-
-const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
 
 
-@implementation SLTest {
-    NSString *_lastKnownFilename;
-    int _lastKnownLineNumber;
+@implementation SLTest
+
+static NSString *__lastKnownFilename;
+static int __lastKnownLineNumber;
+
+// To use a preprocessor macro throughout this file, we'd have to specially build Subliminal
+// when unit testing, e.g. using a "Unit Testing" build configuration
++ (BOOL)isBeingUnitTested {
+    static BOOL isBeingUnitTested = NO;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        isBeingUnitTested = (getenv("SL_UNIT_TESTING") != NULL);
+    });
+    return isBeingUnitTested;
 }
 
 + (NSSet *)allTests {
@@ -66,7 +74,47 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
         free(classes);
     }
     
-    return tests;
+    return [tests copy];
+}
+
++ (NSSet *)testsWithTags:(NSSet *)tags {
+    NSMutableSet *inclusionTags = [tags mutableCopy];
+    NSMutableSet *exclusionTags = [[NSMutableSet alloc] initWithCapacity:[tags count]];
+    for (NSString *tag in tags) {
+        if ([tag hasPrefix:@"-"]) {
+            [inclusionTags removeObject:tag];
+            [exclusionTags addObject:[tag substringFromIndex:1]];
+        }
+    }
+    
+    NSMutableSet *tests = [[self allTests] mutableCopy];
+    if ([inclusionTags count]) [tests filterUsingPredicate:[NSPredicate predicateWithFormat:@"ANY SELF.tags in %@", inclusionTags]];
+    if ([exclusionTags count]) [tests filterUsingPredicate:[NSPredicate predicateWithFormat:@"NONE SELF.tags in %@", exclusionTags]];
+    return [tests copy];
+}
+
++ (NSSet *)tags {
+    NSMutableSet *tags = [[NSMutableSet alloc] init];
+    
+    Class testClass = self;
+    while (testClass != [SLTest class]) {
+        NSString *name = NSStringFromClass(testClass);
+        if ([[name lowercaseString] hasPrefix:SLTestFocusPrefix]) {
+            name = [name substringFromIndex:[SLTestFocusPrefix length]];
+        }
+        [tags addObject:name];
+        testClass = [testClass superclass];
+    }
+    
+    NSString *runGroup = [NSString stringWithFormat:@"%lu", (unsigned long)[self runGroup]];
+    [tags addObject:runGroup];
+    
+    return [tags copy];
+}
+
++ (NSSet *)tagsForTestCaseWithSelector:(SEL)testCaseSelector {
+    NSString *unfocusedTestCaseName = [self unfocusedTestCaseName:NSStringFromSelector(testCaseSelector)];
+    return [[self tags] setByAddingObject:unfocusedTestCaseName];
 }
 
 + (Class)testNamed:(NSString *)name {
@@ -86,13 +134,8 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
     return ![[self testCases] count];
 }
 
-+ (BOOL)isFocused {    
-    for (NSString *testCaseName in [self focusedTestCases]) {
-        // pass the unfocused selector, as focus is temporary and shouldn't require modifying the test infrastructure
-        SEL unfocusedTestCaseSelector = NSSelectorFromString([self unfocusedTestCaseName:testCaseName]);
-        if ([self testCaseWithSelectorSupportsCurrentPlatform:unfocusedTestCaseSelector]) return YES;
-    }
-    return NO;
++ (BOOL)isFocused {
+    return [[self focusedTestCases] count] > 0;
 }
 
 + (BOOL)isFocusedWithEnvVar {
@@ -123,7 +166,60 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
         testClass = [testClass superclass];
     }
 
-    return testSupportsCurrentDevice;
+    BOOL aTestCaseSupportsCurrentPlatform = NO;
+    for (NSString *testCaseName in [self testCases]) {
+        // pass the unfocused selector, as focus is temporary and shouldn't require modifying the test infrastructure
+        SEL unfocusedTestCaseSelector = NSSelectorFromString([self unfocusedTestCaseName:testCaseName]);
+        if ([self testCaseWithSelectorSupportsCurrentPlatform:unfocusedTestCaseSelector]) {
+            aTestCaseSupportsCurrentPlatform = YES;
+            break;
+        }
+    }
+    
+    return testSupportsCurrentDevice && aTestCaseSupportsCurrentPlatform;
+}
+
++ (BOOL)testCaseWithSelectorSupportsCurrentPlatform:(SEL)testCaseSelector {
+    NSString *testCaseName = NSStringFromSelector(testCaseSelector);
+    
+    UIUserInterfaceIdiom userInterfaceIdiom = [[UIDevice currentDevice] userInterfaceIdiom];
+    if ([testCaseName hasSuffix:@"_iPad"]) return (userInterfaceIdiom == UIUserInterfaceIdiomPad);
+    if ([testCaseName hasSuffix:@"_iPhone"]) return (userInterfaceIdiom == UIUserInterfaceIdiomPhone);
+    return YES;
+}
+
++ (BOOL)supportsCurrentEnvironment {
+    for (NSString *testCaseName in [self testCases]) {
+        // pass the unfocused selector, as focus is temporary and shouldn't require modifying the test infrastructure
+        SEL unfocusedTestCaseSelector = NSSelectorFromString([self unfocusedTestCaseName:testCaseName]);
+        if ([self testCaseWithSelectorSupportsCurrentEnvironment:unfocusedTestCaseSelector]) return YES;
+    }
+    return NO;
+}
+
++ (BOOL)testCaseWithSelectorSupportsCurrentEnvironment:(SEL)testCaseSelector {
+    // Cache the tags for performance, except when unit testing.
+    static NSSet *inclusionTags = nil, *exclusionTags = nil;
+    if ([self isBeingUnitTested] || !inclusionTags || !exclusionTags) {
+        NSSet *tags = [NSSet setWithArray:[[[NSProcessInfo processInfo] environment][@"SL_TAGS"] componentsSeparatedByString:@","]];
+        
+        NSMutableSet *iTags = [tags mutableCopy];
+        NSMutableSet *eTags = [[NSMutableSet alloc] initWithCapacity:[tags count]];
+        for (NSString *tag in tags) {
+            if ([tag hasPrefix:@"-"]) {
+                [iTags removeObject:tag];
+                [eTags addObject:[tag substringFromIndex:1]];
+            }
+        }
+
+        inclusionTags = [iTags copy], exclusionTags = [eTags copy];
+    }
+    
+    NSSet *testCaseTags = [self tagsForTestCaseWithSelector:testCaseSelector];
+    if ([inclusionTags count] && ![testCaseTags intersectsSet:inclusionTags]) return NO;
+    if ([exclusionTags count] && [testCaseTags intersectsSet:exclusionTags]) return NO;
+    
+    return YES;
 }
 
 + (NSUInteger)runGroup {
@@ -265,7 +361,8 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
     return [baseTestCases filteredSetUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
         // pass the unfocused selector, as focus is temporary and shouldn't require modifying the test infrastructure
         SEL unfocusedTestCaseSelector = NSSelectorFromString([self unfocusedTestCaseName:evaluatedObject]);
-        return [self testCaseWithSelectorSupportsCurrentPlatform:unfocusedTestCaseSelector];
+        return ([self testCaseWithSelectorSupportsCurrentPlatform:unfocusedTestCaseSelector] &&
+                [self testCaseWithSelectorSupportsCurrentEnvironment:unfocusedTestCaseSelector]);
     }]];
 }
 
@@ -276,15 +373,6 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
     }
     return testCase;
 }
-
-+ (BOOL)testCaseWithSelectorSupportsCurrentPlatform:(SEL)testCaseSelector {
-    NSString *testCaseName = NSStringFromSelector(testCaseSelector);
-    
-    UIUserInterfaceIdiom userInterfaceIdiom = [[UIDevice currentDevice] userInterfaceIdiom];
-    if ([testCaseName hasSuffix:@"_iPad"]) return (userInterfaceIdiom == UIUserInterfaceIdiomPad);
-    if ([testCaseName hasSuffix:@"_iPhone"]) return (userInterfaceIdiom == UIUserInterfaceIdiomPhone);
-    return YES;
- }
 
 - (BOOL)runAndReportNumExecuted:(NSUInteger *)numCasesExecuted
                          failed:(NSUInteger *)numCasesFailed
@@ -316,7 +404,7 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
 
                 // clear call site information, so at the least it won't be reused between test cases
                 // (though we can't guarantee it won't be reused within a test case)
-                [self clearLastKnownCallSite];
+                [SLTest clearLastKnownCallSite];
 
                 BOOL caseFailed = NO, failureWasExpected = NO;
                 @try {
@@ -392,14 +480,14 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
     [NSThread sleepForTimeInterval:interval];
 }
 
-- (void)recordLastKnownFile:(const char *)filename line:(int)lineNumber {
-    _lastKnownFilename = [@(filename) lastPathComponent];
-    _lastKnownLineNumber = lineNumber;
++ (void)recordLastKnownFile:(const char *)filename line:(int)lineNumber {
+    __lastKnownFilename = [@(filename) lastPathComponent];
+    __lastKnownLineNumber = lineNumber;
 }
 
-- (void)clearLastKnownCallSite {
-    _lastKnownFilename = nil;
-    _lastKnownLineNumber = 0;
++ (void)clearLastKnownCallSite {
+    __lastKnownFilename = nil;
+    __lastKnownLineNumber = 0;
 }
 
 - (NSException *)exceptionByAddingFileInfo:(NSException *)exception {
@@ -407,19 +495,19 @@ const NSTimeInterval SLWaitUntilTrueRetryDelay = 0.25;
     // and if the exception was thrown by `SLTest` or `SLUIAElement`,
     // where the information was likely to have been recorded by an assertion or UIAElement macro.
     // Otherwise it is likely stale.
-    if (_lastKnownFilename &&
+    if (__lastKnownFilename &&
         ([[exception name] hasPrefix:SLTestExceptionNamePrefix] ||
          [[exception name] hasPrefix:SLUIAElementExceptionNamePrefix])) {
         NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:[exception userInfo]];
-        userInfo[SLLoggerExceptionFilenameKey] = _lastKnownFilename;
-        userInfo[SLLoggerExceptionLineNumberKey] = @(_lastKnownLineNumber);
+        userInfo[SLLoggerExceptionFilenameKey] = __lastKnownFilename;
+        userInfo[SLLoggerExceptionLineNumberKey] = @(__lastKnownLineNumber);
 
         exception = [NSException exceptionWithName:[exception name] reason:[exception reason] userInfo:userInfo];
     }
 
     // Regardless of whether we used it or not,
     // call site info is now stale
-    [self clearLastKnownCallSite];
+    [SLTest clearLastKnownCallSite];
 
     return exception;
 }

@@ -249,6 +249,17 @@
     SLAssertFalse([cityLabel isValid], @"Should not be able to match individual child label.");
 }
 
+- (void)testMatchingElementsWithinTableHeaderView {
+    SLAssertTrue([[UIAElement([SLButton elementWithAccessibilityLabel:@"Button 1"]) label] isEqualToString:@"Button 1"],
+                 @"Couldn't find the first button within the table view!");
+    SLAssertTrue([[UIAElement([SLButton elementWithAccessibilityLabel:@"Button 2"]) label] isEqualToString:@"Button 2"],
+                 @"Couldn't find the second button within the table view!");
+    SLAssertTrue([[UIAElement([SLStaticText elementWithAccessibilityLabel:@"Label 1"]) label] isEqualToString:@"Label 1"],
+                 @"Couldn't find the first label within the table view!");
+    SLAssertTrue([[UIAElement([SLStaticText elementWithAccessibilityLabel:@"Label 2"]) label] isEqualToString:@"Label 2"],
+                 @"Couldn't find the second label within the table view!");
+}
+
 // matching child elements may be done on a per-element basis (e.g. controls)
 // the Accessibility Inspector reports the ground truth
 - (void)testMatchingNonLabelTableViewCellChildElement {
@@ -329,6 +340,18 @@
     SLElement *memorabiliaLink = [SLElement elementWithAccessibilityLabel:memorabiliaLabel];
     SLAssertTrue([[UIAElement(memorabiliaLink) label] isEqualToString:memorabiliaLabel],
                  @"Could not match element in webview.");
+}
+
+#pragma mark - UITextField Input View
+
+- (void)testMatchingTextInputPickerView {
+    SLPickerView *picker = [SLPickerView elementWithAccessibilityIdentifier:@"Picker View"];
+    SLTextField *textField = [SLTextField elementWithAccessibilityIdentifier:@"Text Field"];
+
+    SLAssertFalse([UIAElement(picker) isValidAndVisible], @"The Picker View shouldn't be visible initially");
+    SLAssertNoThrow([textField tap], @"Should be able to tap on the text element");
+    SLAssertNoThrow([picker selectValue:@"2" forComponent:0], @"Should be able to set the picker wheel values");
+    SLAssertTrue([[textField value] isEqualToString:@"2 - 1"], @"Setting the value for the picker control should update the text field");
 }
 
 #pragma mark - Popovers

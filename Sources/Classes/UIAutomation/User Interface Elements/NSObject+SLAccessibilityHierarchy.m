@@ -179,11 +179,18 @@
 - (BOOL)accessibilityAncestorPreventsPresenceInAccessibilityHierarchy {
     // An object will not appear in the accessibility hierarchy
     // if an ancestor is an accessibility element.
-    id parent = [self slAccessibilityParent];
+    id parent = [self slAccessibilityParent], child = self;
     while (parent) {
         if ([parent isAccessibilityElement]) {
-            return YES;
+            // Although `UITableView` makes an exception (as always):
+            // objects within its header or footer views may appear in the hierarchy.
+            if (!([parent isKindOfClass:[UITableView class]] &&
+                  (child == ((UITableView *)parent).tableHeaderView ||
+                   child == ((UITableView *)parent).tableFooterView))) {
+                return YES;
+            }
         }
+        child = parent;
         parent = [parent slAccessibilityParent];
     }
 
@@ -294,7 +301,12 @@
     if ([self.subviews count]) {
         isPopover = [self.subviews[0] isKindOfClass:[UIPopoverBackgroundView class]];
     }
-    return isPopover;
+
+    // Assuming that if the window is not owned by the application, it is probably an alert. Rather than
+    // string checking against a private class, keeping all view's in the path for this case.
+    BOOL isInAlertWindow = ![[[UIApplication sharedApplication] windows] containsObject:[self window]];
+
+    return isPopover || isInAlertWindow;
 }
 
 // An object is a mock view if its `accessibilityIdentifier` tracks
@@ -353,6 +365,9 @@
 #pragma mark UIView subclass overrides
 
 @implementation UITableViewCell (SLAccessibilityHierarchy)
+- (BOOL)classForcesPresenceInAccessibilityHierarchy {
+    return YES;
+}
 - (BOOL)classForcesPresenceOfMockingViewsInAccessibilityHierarchy {
     return YES;
 }
@@ -373,7 +388,8 @@
 
 @implementation UIScrollView (SLAccessibilityHierarchy)
 - (BOOL)classForcesPresenceInAccessibilityHierarchy {
-    return YES;
+    return kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_6_1 ||
+           ![[(UIView *)self superview] isKindOfClass:[UITableViewCell class]];
 }
 @end
 
@@ -431,4 +447,23 @@
 - (BOOL)classForcesPresenceInAccessibilityHierarchy {
     return YES;
 }
+@end
+
+
+@implementation UIPickerView (SLAccessibilityHierarchy)
+
+- (BOOL)classForcesPresenceInAccessibilityHierarchy {
+    return YES;
+}
+
+/**
+ A picker view can have very many child elements e.g. if it is a date picker's
+ internal picker view. We never need to enumerate these items--`SLPickerView` and
+ `SLDatePicker` provide sufficient interfaces to pickers--so we save time by preventing
+ searches from recursing into pickers.
+ */
+- (NSArray *)slChildAccessibilityElementsFavoringSubviews:(BOOL)favoringSubviews {
+    return nil;
+}
+
 @end

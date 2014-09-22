@@ -25,6 +25,7 @@
 #import <Subliminal/SLTerminal.h>
 #import <OCMock/OCMock.h>
 
+#import "SLTest+Internal.h"
 #import "TestUtilities.h"
 #import "SharedSLTests.h"
 
@@ -63,6 +64,12 @@
         ];
         STAssertTrue([[_testsUsedToTestRandomizationWithinRunGroups valueForKey:@"runGroup"] count] == 1,
                      @"All tests used to test randomization within run groups must be of the same run group.");
+    }
+}
+
+- (void)tearDownTestWithSelector:(SEL)testMethod {
+    if (testMethod == @selector(testTheUserIsNotifiedWhenRunningTaggedTests)) {
+        unsetenv("SL_TAGS");
     }
 }
 
@@ -302,6 +309,51 @@ static const NSUInteger kNumSeedTrials = 100;
     STAssertNoThrow([testNotSupportingCurrentPlatformMock verify], @"Test not supporting current platform was unexpectedly run.");
 }
 
+#pragma mark -Environment support
+
+- (void)testOnlyTestsSupportingCurrentEnvironmentAreRun {
+    Class testSupportingCurrentEnvironmentClass = [TestWithSomeTestCases class];
+    STAssertTrue([testSupportingCurrentEnvironmentClass supportsCurrentEnvironment],
+                 @"For the purposes of this test, this SLTest must support the current environment.");
+    id testSupportingCurrentEnvironmentMock = [OCMockObject partialMockForClass:testSupportingCurrentEnvironmentClass];
+    [[testSupportingCurrentEnvironmentMock expect] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                                    failed:[OCMArg anyPointer]
+                                                        failedUnexpectedly:[OCMArg anyPointer]];
+    
+    Class testNotSupportingCurrentEnvironmentClass = [TestNotSupportingCurrentEnvironment class];
+    STAssertFalse([testNotSupportingCurrentEnvironmentClass supportsCurrentEnvironment],
+                  @"For the purposes of this test, this SLTest must not support the current environment.");
+    id testNotSupportingCurrentEnvironmentMock = [OCMockObject partialMockForClass:testNotSupportingCurrentEnvironmentClass];
+    [[testNotSupportingCurrentEnvironmentMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                                       failed:[OCMArg anyPointer]
+                                                           failedUnexpectedly:[OCMArg anyPointer]];
+    
+    SLRunTestsAndWaitUntilFinished([NSSet setWithObjects:testSupportingCurrentEnvironmentClass, testNotSupportingCurrentEnvironmentClass, nil], nil);
+    STAssertNoThrow([testSupportingCurrentEnvironmentMock verify], @"Test supporting current environment was not run as expected.");
+    STAssertNoThrow([testNotSupportingCurrentEnvironmentMock verify], @"Test not supporting current environment was unexpectedly run.");
+}
+
+- (void)testTheUserIsNotifiedWhenRunningTaggedTests {
+    // use two classes so we can verify how multiple tags are concatenated
+    NSSet *testClasses = [NSSet setWithObjects:[TestWithSomeTestCases class], [TestWithTagAAAandCCC class], nil];
+
+    NSString *tagString = [[[testClasses allObjects] valueForKey:@"description"] componentsJoinedByString:@","];
+    setenv("SL_TAGS", [tagString UTF8String], 1);
+    
+    // message
+    NSString *tagDescriptionString = [[tagString componentsSeparatedByString:@","] componentsJoinedByString:@", "];
+    [[_loggerMock expect] logMessage:[NSString stringWithFormat:@"Running test cases described by tags: %@.", tagDescriptionString]];
+    [[_loggerMock expect] logTestingStart];
+    
+    // Ignore focused tests because they don't support the current environment
+    // (not being tagged with the above tags) and so will be filtered out,
+    // leaving no tests to be run--causing the run to immediately abort without
+    // logging the expected message.
+    NSSet *nonFocusedTests = [[SLTest allTests] filteredSetUsingPredicate:[NSPredicate predicateWithFormat:@"isFocused == NO"]];
+    SLRunTestsAndWaitUntilFinished(nonFocusedTests, nil);
+    STAssertNoThrow([_loggerMock verify], @"Test was not run/messages were not logged as expected.");
+}
+
 #pragma mark -Focusing
 
 - (void)testWhenSomeTestsAreFocusedOnlyThoseTestsAreRun {
@@ -342,10 +394,13 @@ static const NSUInteger kNumSeedTrials = 100;
     ];
     NSUInteger numberOfFocusedTests = 0;
     for (Class testClass in tests) {
-        // All SLTests used here must support the current platform lest this test
-        // overlap with -testTestsMustSupportCurrentPlatformInOrderToRunDespiteFocus.
+        // All SLTests used here must support the current platform and environment lest this test
+        // overlap with `-testAFocusedTestMustSupportTheCurrentPlatformInOrderToBeRun`
+        // and/or `-testAFocusedTestMustSupportTheCurrentEnvironmentInOrderToBeRun`
         STAssertTrue([testClass supportsCurrentPlatform],
                      @"All SLTests used by this test must support the current platform.");
+        STAssertTrue([testClass supportsCurrentEnvironment],
+                     @"All SLTests used by this test must support the current environment.");
 
         if ([testClass isFocused]) numberOfFocusedTests++;
     }
@@ -381,7 +436,7 @@ static const NSUInteger kNumSeedTrials = 100;
     STAssertTrue([testThatIsFocusedButDoesntSupportCurrentPlatformClass isFocused],
                  @"For the purposes of this test, this SLTest must be focused.");
     STAssertFalse([testThatIsFocusedButDoesntSupportCurrentPlatformClass supportsCurrentPlatform],
-                  @"For the purposes of this test, this SLTest must not support current platform.");
+                  @"For the purposes of this test, this SLTest must not support the current platform.");
 
     NSSet *tests = [NSSet setWithObjects:
         testThatIsNotFocusedClass,
@@ -389,16 +444,16 @@ static const NSUInteger kNumSeedTrials = 100;
         nil
     ];
 
-     // While TestThatIsFocusedButDoesntSupportCurrentPlatform is focused,
+     // While `TestThatIsFocusedButDoesntSupportCurrentPlatform` is focused,
     // it doesn't support the current platform, thus isn't going to run.
-    // If it's not going to run, its focus is irrelevant, and so the other test should run after all.
+    // However, its being focused should exclude the other test from running too.
     id testThatIsFocusedButDoesntSupportCurrentPlatformClassMock = [OCMockObject partialMockForClass:testThatIsFocusedButDoesntSupportCurrentPlatformClass];
     [[testThatIsFocusedButDoesntSupportCurrentPlatformClassMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
                                                                                          failed:[OCMArg anyPointer]
                                                                              failedUnexpectedly:[OCMArg anyPointer]];
 
     id testThatIsNotFocusedClassMock = [OCMockObject partialMockForClass:testThatIsNotFocusedClass];
-    [[testThatIsNotFocusedClassMock expect] runAndReportNumExecuted:[OCMArg anyPointer]
+    [[testThatIsNotFocusedClassMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
                                                              failed:[OCMArg anyPointer]
                                                  failedUnexpectedly:[OCMArg anyPointer]];
 
@@ -407,6 +462,41 @@ static const NSUInteger kNumSeedTrials = 100;
     STAssertNoThrow([testThatIsNotFocusedClassMock verify], @"Other test was not run as expected.");
 }
 
+- (void)testAFocusedTestMustSupportTheCurrentEnvironmentInOrderToBeRun {
+    Class testThatIsNotFocusedClass = [TestThatIsNotFocused class];
+    STAssertFalse([testThatIsNotFocusedClass isFocused],
+                  @"For the purposes of this test, this SLTest must not be focused.");
+    Class testThatIsFocusedButDoesntSupportCurrentEnvironmentClass = [Focus_TestThatIsFocusedButDoesntSupportCurrentEnvironment class];
+    STAssertTrue([testThatIsFocusedButDoesntSupportCurrentEnvironmentClass isFocused],
+                 @"For the purposes of this test, this SLTest must be focused.");
+    STAssertFalse([testThatIsFocusedButDoesntSupportCurrentEnvironmentClass supportsCurrentEnvironment],
+                  @"For the purposes of this test, this SLTest must not support current environment.");
+    
+    NSSet *tests = [NSSet setWithObjects:
+        testThatIsNotFocusedClass,
+        testThatIsFocusedButDoesntSupportCurrentEnvironmentClass,
+        nil
+    ];
+    
+    // While `TestThatIsFocusedButDoesntSupportCurrentEnvironment` is focused,
+    // it doesn't support the current environment, thus isn't going to run.
+    // However, its being focused should exclude the other test from running too.
+    id testThatIsFocusedButDoesntSupportCurrentEnvironmentClassMock = [OCMockObject partialMockForClass:testThatIsFocusedButDoesntSupportCurrentEnvironmentClass];
+    [[testThatIsFocusedButDoesntSupportCurrentEnvironmentClassMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                                                            failed:[OCMArg anyPointer]
+                                                                                failedUnexpectedly:[OCMArg anyPointer]];
+    
+    id testThatIsNotFocusedClassMock = [OCMockObject partialMockForClass:testThatIsNotFocusedClass];
+    [[testThatIsNotFocusedClassMock reject] runAndReportNumExecuted:[OCMArg anyPointer]
+                                                             failed:[OCMArg anyPointer]
+                                                 failedUnexpectedly:[OCMArg anyPointer]];
+    
+    SLRunTestsAndWaitUntilFinished(tests, nil);
+    STAssertNoThrow([testThatIsFocusedButDoesntSupportCurrentEnvironmentClassMock verify], @"Test doesn't support the current environment but was still run.");
+    STAssertNoThrow([testThatIsNotFocusedClassMock verify], @"Other test was not run as expected.");
+}
+
+// Focus always excludes other tests--but only if the user tries to run the focused test.
 - (void)testFocusedTestsAreNotAutomaticallyAddedToTheSetOfTestsToRun {
     Class testWithSomeTestCasesClass = [TestWithSomeTestCases class];
     STAssertFalse([testWithSomeTestCasesClass isFocused],
@@ -538,6 +628,30 @@ static const NSUInteger kNumSeedTrials = 100;
     STAssertThrows([[SLTestController alloc] init], @"Should not have been able to manually initialize an SLTestController.");
 
 #pragma clang diagnostic pop
+}
+
+- (void)testTheUserIsWarnedIfTheyDidntPassTests {
+    [[_loggerMock expect] logWarning:@"There are no tests to run: no tests were passed."];
+    
+    SLRunTestsAndWaitUntilFinished([NSSet set], nil);
+    
+    STAssertNoThrow([_loggerMock verify], @"Expected warning was not logged.");
+}
+
+- (void)testTheUserIsWarnedIfThereAreNoRegularTestsToRun {
+    [[_loggerMock expect] logWarning:@"There are no tests to run: none of the tests passed meet the criteria to be run. See `-[SLTestController runTests:usingSeed:withCompletionBlock:]`'s documentation."];
+
+    SLRunTestsAndWaitUntilFinished([NSSet setWithObject:[TestNotSupportingCurrentPlatform class]], nil);
+    
+    STAssertNoThrow([_loggerMock verify], @"Expected warning was not logged.");
+}
+
+- (void)testTheUserIsWarnedIfThereAreNoFocusedTestsToRun {
+    [[_loggerMock expect] logWarning:@"There are no tests to run: none of the tests focused meet the criteria to be run. See `-[SLTestController runTests:usingSeed:withCompletionBlock:]`'s documentation."];
+    
+    SLRunTestsAndWaitUntilFinished([NSSet setWithObjects:[Focus_TestThatIsFocusedButDoesntSupportCurrentPlatform class], [TestWithSomeTestCases class], nil], nil);
+    
+    STAssertNoThrow([_loggerMock verify], @"Expected warning was not logged.");
 }
 
 @end

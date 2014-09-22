@@ -212,6 +212,9 @@
                                                     UICollectionViewDataSource, UICollectionViewDelegate,
                                                     UIWebViewDelegate >
 
+@property (weak, nonatomic) UIViewController *storyboardViewController;
+
+
 // fooButton is purposely strong so that we can hold onto it
 // while it's removed from the view hierarchy in testElementsWaitToMatchValidObjects
 @property (strong, nonatomic) IBOutlet UIButton *fooButton;
@@ -256,7 +259,8 @@
         (testCase == @selector(testMatchingPopoverChildElement_iPad)) ||
         (testCase == @selector(testMatchingTabBarButtons)) ||
         (testCase == @selector(testMatchingActionSheetButtons)) ||
-        (testCase == @selector(testMatchingButtonsOfActionSheetsInPopovers_iPad))) {
+        (testCase == @selector(testMatchingButtonsOfActionSheetsInPopovers_iPad)) ||
+        (testCase == @selector(testMatchingTextInputPickerView))) {
         return @"SLElementMatchingTestViewController";
     } else if ((testCase == @selector(testMatchingTableViewCellTextLabel)) ||
                (testCase == @selector(testMatchingTableViewCellWithCombinedLabel)) ||
@@ -325,6 +329,14 @@
         _collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
         self.view = _collectionView;
+    } else if (testCase == @selector(testMatchingElementsWithinTableHeaderView)) {
+        UIStoryboard *sb = [UIStoryboard storyboardWithName:@"SLTestMatchingElementsWithinTableHeaderView" bundle:nil];
+        self.storyboardViewController = [sb instantiateInitialViewController];
+        [self addChildViewController:self.storyboardViewController];
+
+        UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        [view addSubview:self.storyboardViewController.view];
+        self.view = view;
     }
 }
 
