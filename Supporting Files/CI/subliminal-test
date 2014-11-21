@@ -522,8 +522,8 @@ launch_instruments () {
 	# are passed to instruments and the app by being exported at the top of this script
 	local timeout_arg=`[[ -n "$TIMEOUT" ]] && echo "-l $TIMEOUT" || echo ""`
 
-  XCODE_VERSION=`xcodebuild -version | grep '6.0.1'`
-  if [ "$XCODE_VERSION" == "Xcode 6.0.1" ];
+  XCODE_VERSION=`xcodebuild -version | grep 'Xcode 6'`
+  if [[ $XCODE_VERSION =~ "Xcode 6" ]];
   then
   	local device=`[[ -n "$HW_ID" ]] && echo "$HW_ID" || echo "$SIM_DEVICE ($SIM_VERSION Simulator)"`
   else
